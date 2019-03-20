@@ -1,22 +1,15 @@
-package main]
+package router
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
 	"github.com/gorilla/mux"
+	"github.com/bozaro/tech-db-forum/tree/master/generated/client/operations"
 )
 
-func createForum(w http.ResponseWritter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		fmt.Println("Error. Method")
-		return
-	}
+func CreateRouter() *mux.Router {
+	r := mux.NewRouter()
 
-	var forum Forum
-}
-
-	//r.HandleFunc("/api/forum/create", createForum).Methods("POST")
+/*
+	r.HandleFunc("/api/forum/create", createForum).Methods("POST")
 	r.HandleFunc("/api/forum/{slug}/createBranch", createBranch).Methods("POST")
 	r.HandleFunc("/api/forum/{slug}/details", getDetails).Methods("GET")
 	r.HandleFunc("/api/forum/{slug}/threads", getThreads).Methods("GET")
@@ -33,3 +26,7 @@ func createForum(w http.ResponseWritter, r *http.Request) {
 	r.HandleFunc("/api/user/{nickname}/create", createUser).Methods("POST")
 	r.HandleFunc("/api/user/{nickname}/profile", getUser).Methods("GET")
 	r.HandleFunc("/api/user/{nickname}/profile", updateUser).Methods("GET")
+	*/
+
+	return r
+}
