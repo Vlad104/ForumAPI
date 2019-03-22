@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"log"
+	"net/http"
 	"time"
+
+	"./database"
 	"./router"
 )
 
 func main() {
 
-	// initialize and connect with DB
+	database.DB.Connect()
 
 	router := router.CreateRouter()
 

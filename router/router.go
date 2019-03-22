@@ -1,15 +1,14 @@
 package router
 
 import (
+	"../service"
 	"github.com/gorilla/mux"
-	"github.com/bozaro/tech-db-forum/tree/master/generated/client/operations"
 )
 
 func CreateRouter() *mux.Router {
 	r := mux.NewRouter()
-
+	r.HandleFunc("/api/forum/create", service.CreateForum).Methods("POST")
 /*
-	r.HandleFunc("/api/forum/create", createForum).Methods("POST")
 	r.HandleFunc("/api/forum/{slug}/createBranch", createBranch).Methods("POST")
 	r.HandleFunc("/api/forum/{slug}/details", getDetails).Methods("GET")
 	r.HandleFunc("/api/forum/{slug}/threads", getThreads).Methods("GET")
@@ -26,7 +25,7 @@ func CreateRouter() *mux.Router {
 	r.HandleFunc("/api/user/{nickname}/create", createUser).Methods("POST")
 	r.HandleFunc("/api/user/{nickname}/profile", getUser).Methods("GET")
 	r.HandleFunc("/api/user/{nickname}/profile", updateUser).Methods("GET")
-	*/
+*/
 
 	return r
 }
