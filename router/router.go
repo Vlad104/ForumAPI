@@ -26,6 +26,5 @@ func CreateRouter() *mux.Router {
 	r.HandleFunc("/api/user/{nickname}/profile", getUser).Methods("GET")
 	r.HandleFunc("/api/user/{nickname}/profile", updateUser).Methods("GET")
 */
-
 	return r
 }

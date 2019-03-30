@@ -14,7 +14,9 @@ func main() {
 
 	database.DB.Connect()
 
-	router := router.CreateRouter()
+	router := router.CreateRouter()	
+	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./common/"))))
+	router.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", http.FileServer(http.Dir("./common/swagger-ui/"))))
 
 	srv := &http.Server{
 		Handler:      router,

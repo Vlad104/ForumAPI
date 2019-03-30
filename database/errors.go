@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	pgxErrUnique 		= "23505"
-	pgxErrForeignKey 	= "23503"
 	pgxErrNotNull		= "23502"
+	pgxErrForeignKey 	= "23503"
+	pgxErrUnique 		= "23505"
 )
 
 type Error struct {
