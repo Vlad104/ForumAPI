@@ -1,9 +1,10 @@
 package database
 
 import (
-	"bytes"
+	// "bytes"
 	"github.com/jackc/pgx"	
 	"github.com/bozaro/tech-db-forum/generated/models"
+	"fmt"
 )
 
 const (
@@ -24,74 +25,109 @@ const (
 	`
 	createForumThreadSQL = `
 		INSERT
-		INTO threads (authot, created, forum, message, slug, title)
-		VALUES($1, $2, $3, $4, $5, (
-			SELECT slug FROM forums WHERE slug = $6
-		)) 
+		INTO threads (author, created, message, title, slug, forum)
+		VALUES ($1, $2, $3, $4, $5, (SELECT slug FROM forums WHERE slug = $6)) 
 		RETURNING author, created, forum, id, message, title
 	`
 	getForumThreadsSinceSQL = `
 		SELECT author, created, forum, id, message, slug, title, votes
 		FROM threads
-		WHERE forum = $3 AND created $1 $4::TEXT::TIMESTAMPTZ
-		ORDER BY created $2
-		LIMIT $5::TEXT::INTEGER
+		WHERE forum = $1 AND created > $2::TEXT::TIMESTAMPTZ
+		ORDER BY created
+		LIMIT $3::TEXT::INTEGER
+	`
+	getForumThreadsDescSinceSQL = `
+		SELECT author, created, forum, id, message, slug, title, votes
+		FROM threads
+		WHERE forum = $1 AND created <= $2::TEXT::TIMESTAMPTZ
+		ORDER BY created DESC
+		LIMIT $3::TEXT::INTEGER
 	`
 	getForumThreadsSQL = `
 		SELECT author, created, forum, id, message, slug, title, votes
 		FROM threads
-		WHERE forum = $2
-		ORDER BY created $1
-		LIMIT $3::TEXT::INTEGER
+		WHERE forum = $1
+		ORDER BY created
+		LIMIT $2::TEXT::INTEGER
+	`
+	getForumThreadsDescSQL = `
+		SELECT author, created, forum, id, message, slug, title, votes
+		FROM threads
+		WHERE forum = $1
+		ORDER BY created DESC
+		LIMIT $2::TEXT::INTEGER
 	`
 	getForumUsersSienceSQl = `
+	SELECT nickname, fullname, about, email
+	FROM users
+	WHERE nickname IN (
+			SELECT author FROM threads WHERE forum = $1
+			UNION
+			SELECT author FROM posts WHERE forum = $1
+		) 
+		AND LOWER(nickname) > LOWER($1::TEXT)
+	ORDER BY nickname
+	LIMIT $3::TEXT::INTEGER
+	`
+	getForumUsersDescSienceSQl = `
 		SELECT nickname, fullname, about, email
 		FROM users
 		WHERE nickname IN (
-				SELECT author FROM threads WHERE forum = $3
+				SELECT author FROM threads WHERE forum = $1
 				UNION
-				SELECT author FROM posts WHERE forum = $3
+				SELECT author FROM posts WHERE forum = $1
 			) 
-			AND LOWER(nickname) $1 LOWER($2::TEXT)
-		ORDER BY nickname $2
-		LIMIT $5::TEXT::INTEGER
+			AND LOWER(nickname) <= LOWER($2::TEXT)
+		ORDER BY nickname DESC
+		LIMIT $3::TEXT::INTEGER
 	`
 	getForumUsersSQl = `
 		SELECT nickname, fullname, about, email
 		FROM users
 		WHERE nickname IN (
-				SELECT author FROM threads WHERE forum = $2
+				SELECT author FROM threads WHERE forum = $1
 				UNION
-				SELECT author FROM posts WHERE forum = $2
+				SELECT author FROM posts WHERE forum = $1
 			)
-		ORDER BY nickname $1
-		LIMIT $4::TEXT::INTEGER
+		ORDER BY nickname
+		LIMIT $2::TEXT::INTEGER
+	`
+	getForumUsersDescSQl = `
+		SELECT nickname, fullname, about, email
+		FROM users
+		WHERE nickname IN (
+				SELECT author FROM threads WHERE forum = $1
+				UNION
+				SELECT author FROM posts WHERE forum = $1
+			)
+		ORDER BY nickname DESC
+		LIMIT $2::TEXT::INTEGER
 	`
 )
 
+// /forum/create Создание форума
 func CreateForumDB(f *models.Forum) (*models.Forum, error)  {
-	rows := DB.pool.QueryRow(
+	err := DB.pool.QueryRow(
 		createForumSQL,
 		&f.Slug,
 		&f.Title,
 		&f.User,
-	)
+	).Scan(&f.User)
 
-	err := rows.Scan(&f.User)
-	if err != nil {
-		switch err.(pgx.PgError).Code {
-		case pgxErrUnique:
-			forum, _ := GetForumDB(f.Slug)
-			return forum, ForumIsExist
-		case pgxErrNotNull:
-			return nil, UserNotFound
-		default:
-			return nil, err
-		}
+	switch ErrorCode(err) {
+	case pgxOK:
+		return f, nil
+	case pgxErrUnique:
+		forum, _ := GetForumDB(f.Slug)
+		return forum, ForumIsExist
+	case pgxErrNotNull:
+		return nil, UserNotFound
+	default:
+		return nil, err
 	}
-	return f, nil
 }
 
+// /forum/{slug}/details Получение информации о форуме
 func GetForumDB(slug string) (*models.Forum, error) {
 	f := models.Forum{}
 
@@ -113,10 +149,11 @@ func GetForumDB(slug string) (*models.Forum, error) {
 	return &f, nil
 }
 
+// /forum/{slug}/create Создание ветки
 func CreateForumThreadDB(t *models.Thread) (*models.Thread, error) {
 	if t.Slug != "" {
 		thread, err := GetThreadDB(t.Slug)
-		if err != nil {
+		if err == nil {
 			return thread, ThreadIsExist
 		}
 	}
@@ -125,10 +162,10 @@ func CreateForumThreadDB(t *models.Thread) (*models.Thread, error) {
 		createForumThreadSQL, 
 		&t.Author,
 		&t.Created, 
-		&t.Forum,
 		&t.Message,
-		&t.Slug,
 		&t.Title,
+		&t.Slug,
+		&t.Forum,
 	).Scan(
 		&t.Author,
 		&t.Created, 
@@ -137,55 +174,59 @@ func CreateForumThreadDB(t *models.Thread) (*models.Thread, error) {
 		&t.Message,
 		&t.Title,
 	)
-
-	if err != nil {
-		switch err.(pgx.PgError).Code {
-		case pgxErrNotNull:
-			return nil, ForumOrAuthorNotFound
-		case pgxErrForeignKey:
-			return nil, ForumOrAuthorNotFound
-		default:
-			return nil, err
-		}
+	
+	switch ErrorCode(err) {
+	case pgxOK:
+		return t, nil
+	case pgxErrNotNull:
+		return nil, ForumOrAuthorNotFound
+	case pgxErrForeignKey:
+		return nil, ForumOrAuthorNotFound
+	default:
+		return nil, err
 	}
-
-	return t, nil
 }
 
-func GetForumThreadsDB(slug string, limit, since, desc []byte) (*models.Threads, error) {
+// /forum/{slug}/threads Список ветвей обсужления форума
+func GetForumThreadsDB(slug string, limit, since, desc string) (*models.Threads, error) {
 	var rows *pgx.Rows
 	var err error
 
-	if since != nil {
-		dir := ">="
-		ord := ""
-		if bytes.Equal([]byte("true"), desc) {
-			dir = "<="
-			ord = "DESC"
+	if since != "" {
+		if desc == "true" {
+			rows, err = DB.pool.Query(
+				getForumThreadsDescSinceSQL,
+				slug,
+				since,
+				limit,
+			)
+		} else {
+			rows, err = DB.pool.Query(
+				getForumThreadsSinceSQL,
+				slug,
+				since,
+				limit,
+			)
 		}
-		rows, err = DB.pool.Query(
-			getForumThreadsSQL,
-			dir, 
-			ord,
-			slug, 
-			since, 
-			limit,
-		)
 	} else {
-		ord := ""
-		if bytes.Equal([]byte("true"), desc) {
-			ord = "DESC"
+		if desc == "true" {
+			rows, err = DB.pool.Query(
+				getForumThreadsDescSQL,
+				slug,
+				limit,
+			)
+		} else {
+			rows, err = DB.pool.Query(
+				getForumThreadsSQL,
+				slug,
+				limit,
+			)
 		}
-		rows, err = DB.pool.Query(
-			getForumThreadsSinceSQL,
-			ord, 
-			slug, 
-			limit,
-		)
 	}
 	defer rows.Close()
 
 	if err != nil {
+		fmt.Println(err)
 		return nil, ForumNotFound
 	}
 	
@@ -214,46 +255,47 @@ func GetForumThreadsDB(slug string, limit, since, desc []byte) (*models.Threads,
 	return &threads, nil
 }
 
-func GetForumUsersDB(slug string, limit, since, desc []byte) (*models.Users, error) {
-	_, err := GetForumDB(slug)
-	if err != nil {
-		return nil, err
-	}
-
+// /forum/{slug}/users Пользователи данного форума
+func GetForumUsersDB(slug string, limit, since, desc string) (*models.Users, error) {
 	var rows *pgx.Rows
-	//var err error
+	var err error
 
-	if since != nil {
-		dir := ">"
-		ord := ""
-		if bytes.Equal([]byte("true"), desc) {
-			dir = "<"
-			ord = "DESC"
+	if since != "" {
+		if desc == "true" {
+			rows, err = DB.pool.Query(
+				getForumUsersDescSienceSQl,
+				slug,
+				since,
+				limit,
+			)
+		} else {
+			rows, err = DB.pool.Query(
+				getForumUsersSienceSQl,
+				slug,
+				since,
+				limit,
+			)
 		}
-		rows, err = DB.pool.Query(
-			getForumUsersSienceSQl,
-			dir, 
-			ord,
-			slug, 
-			since, 
-			limit,
-		)
 	} else {
-		ord := ""
-		if bytes.Equal([]byte("true"), desc) {
-			ord = "DESC"
+		if desc == "true" {
+			rows, err = DB.pool.Query(
+				getForumUsersDescSQl,
+				slug,
+				limit,
+			)
+		} else {
+			rows, err = DB.pool.Query(
+				getForumUsersSQl,
+				slug,
+				limit,
+			)
 		}
-		rows, err = DB.pool.Query(
-			getForumUsersSQl,
-			ord, 
-			slug, 
-			limit,
-		)
 	}
 	defer rows.Close()
 
 	if err != nil {
-		return nil, UserNotFound
+		fmt.Println(err)
+		return nil, ForumNotFound
 	}
 	
 	users := models.Users{}

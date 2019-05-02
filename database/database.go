@@ -23,9 +23,10 @@ func (db *DataBase) Connect() error {
 	runtimeParams := make(map[string] string)
 	runtimeParams["application_name"] = "dz"
 	conConfig := pgx.ConnConfig {
-		Host: 			"localhost",
+		// Host: 			"localhost",
+		Host: 			"127.0.0.1",
 		Port: 			5432,
-		Database: 		"postgres",
+		Database: 		"mydb",
 		User: 			"postgres",
 		Password: 		"postgres",
 		TLSConfig: 		nil,
@@ -44,4 +45,12 @@ func (db *DataBase) Connect() error {
 	db.pool = p
 	
 	return err
+}
+
+func ErrorCode(err error) (string) {
+	pgerr, ok := err.(pgx.PgError)
+	if !ok {
+		return pgxOK
+	}
+	return pgerr.Code
 }

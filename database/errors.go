@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	pgxOK				= ""
 	pgxErrNotNull		= "23502"
 	pgxErrForeignKey 	= "23503"
 	pgxErrUnique 		= "23505"
