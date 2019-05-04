@@ -15,9 +15,9 @@ func CreateRouter() *mux.Router {
 	r.HandleFunc("/api/user/{nickname}/create", service.CreateUser).Methods("POST")
 	r.HandleFunc("/api/user/{nickname}/profile", service.GetUser).Methods("GET")
 	r.HandleFunc("/api/user/{nickname}/profile", service.UpdateUser).Methods("POST")
+	r.HandleFunc("/api/post/{id}/details", service.GetPost).Methods("GET")
+	r.HandleFunc("/api/post/{id}/details", service.UpdatePost).Methods("POST")
 /*
-	r.HandleFunc("/api/post/{id}/details", getDetails).Methods("GET")
-	r.HandleFunc("/api/post/{id}/details", postDetails).Methods("POST")
 	r.HandleFunc("/api/service/clear", clearService).Methods("POST")
 	r.HandleFunc("/api/service/status", getStatus).Methods("GET")
 	r.HandleFunc("/api/thread/{slug_or_id}/create", createThread).Methods("POST")
