@@ -18,6 +18,11 @@ const (
 		FROM users
 		WHERE "email" = $1 OR "nickname" = $2
 	`
+	getUserByNickname = `
+		SELECT "nickname", "fullname", "email", "about"
+		FROM users
+		WHERE "nickname" = $1
+	`
 	getUserSQL = `
 		SELECT "nickname", "fullname", "email", "about"
 		FROM users
