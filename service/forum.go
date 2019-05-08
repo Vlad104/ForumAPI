@@ -7,6 +7,7 @@ import (
 	"../database"
 	"encoding/json"
 	//"github.com/bozaro/tech-db-forum/generated/client/operations"
+	// "github.com/go-openapi/strfmt"
 	"github.com/bozaro/tech-db-forum/generated/models"
 	"github.com/gorilla/mux"
 	"github.com/go-openapi/swag"
@@ -24,7 +25,8 @@ func CreateForum(w http.ResponseWriter, r *http.Request) {
 	forum := &models.Forum{}
 	err = json.Unmarshal(body, &forum)
 
-	//err = forum.Validate()
+	// reg := strfmt.NewFormats()
+	// err = forum.Validate(reg)
 	if err != nil {
 		fmt.Println(err)
 		return
