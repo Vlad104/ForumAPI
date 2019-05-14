@@ -22,9 +22,8 @@ func CreateRouter() *mux.Router {
 	r.HandleFunc("/api/thread/{slug_or_id}/create", service.CreatePost).Methods("POST")
 	r.HandleFunc("/api/service/status", service.GetStatus).Methods("GET")
 	r.HandleFunc("/api/service/clear", service.Clear).Methods("POST")
-/*
-	r.HandleFunc("/api/thread/{slug_or_id}/posts", service.getPosts).Methods("GET")
-	r.HandleFunc("/api/thread/{slug_or_id}/vote", service.postVote).Methods("POST")
-*/
+	r.HandleFunc("/api/thread/{slug_or_id}/posts", service.GetThreadPosts).Methods("GET")
+	r.HandleFunc("/api/thread/{slug_or_id}/vote", service.MakeThreadVote).Methods("POST")
+
 	return r
 }

@@ -8,7 +8,7 @@ import (
 	// "../models"
 	"time"
 	//strfmt "github.com/go-openapi/strfmt"
-	strmft "github.com/bozaro/tech-db-forum/vendor/github.com/go-openapi/strfmt"
+	// strmft "github.com/bozaro/tech-db-forum/vendor/github.com/go-openapi/strfmt"
 )
 
 const (
@@ -29,24 +29,147 @@ const (
 		WHERE slug = $1
 		RETURNING id, title, author, forum, message, votes, slug, created
 	`
-	// createPostSQL = `
-	// 	INSERT 
-	// 	INTO posts (author, created, message, thread, parent, forum, path) 
-	// 	VALUES ($1, $2, $3, $4, $5, $6, 
-	// 		(SELECT path FROM posts WHERE id = %d) || 
-	// 		(select currval(pg_get_serial_sequence('posts', 'id')))
-	// 	)
-	// 	RETURNING author, created, forum, id, message, parent, thread
-	// `
-	// createPostDelSQL = `
-	// 	INSERT 
-	// 	INTO posts (author, created, message, thread, parent, forum, path) 
-	// 	VALUES ($1, $2, $3, $4, $5, $6, 
-	// 		(SELECT path FROM posts WHERE id = %d) || 
-	// 		(select currval(pg_get_serial_sequence('posts', 'id')))
-	// 	),
-	// 	RETURNING author, created, forum, id, message, parent, thread
-	// `
+
+	// getThreadPosts
+	getPostsSienceDescLimitTreeSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1 AND (path < (SELECT path FROM posts WHERE id = $2::TEXT::INTEGER))
+		ORDER BY path DESC
+		LIMIT $3::TEXT::INTEGER
+	`
+	
+	getPostsSienceDescLimitParentTreeSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE path[1] IN (
+			SELECT id
+			FROM posts
+			WHERE thread = $1 AND parent = 0 AND id < (SELECT path[1] FROM posts WHERE id = $2::TEXT::INTEGER)
+			ORDER BY id DESC
+			LIMIT $3::TEXT::INTEGER
+		)
+		ORDER BY path	
+	`
+	getPostsSienceDescLimitFlatSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1 AND id < $2::TEXT::INTEGER
+		ORDER BY id DESC
+		LIMIT $3::TEXT::INTEGER
+	`
+	getPostsSienceLimitTreeSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1 AND (path > (SELECT path FROM posts WHERE id = $2::TEXT::INTEGER))
+		ORDER BY path
+		LIMIT $3::TEXT::INTEGER
+	`
+	getPostsSienceLimitParentTreeSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE path[1] IN (
+			SELECT id
+			FROM posts
+			WHERE thread = $1 AND parent = 0 AND id > (SELECT path[1] FROM posts WHERE id = $2::TEXT::INTEGER)
+			ORDER BY id LIMIT $3::TEXT::INTEGER
+		)
+		ORDER BY path
+	`
+	getPostsSienceLimitFlatSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1 AND id > $2::TEXT::INTEGER
+		ORDER BY id
+		LIMIT $3::TEXT::INTEGER
+	`
+	// without sience
+	getPostsDescLimitTreeSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1 
+		ORDER BY path DESC
+		LIMIT $2::TEXT::INTEGER
+	`
+	getPostsDescLimitParentTreeSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1 AND path[1] IN (
+			SELECT path[1]
+			FROM posts
+			WHERE thread = $1
+			GROUP BY path[1]
+			ORDER BY path[1] DESC
+			LIMIT $2::TEXT::INTEGER
+		)
+		ORDER BY path[1] DESC, path
+	`
+	getPostsDescLimitFlatSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1
+		ORDER BY id DESC
+		LIMIT $2::TEXT::INTEGER
+	`
+	getPostsLimitTreeSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1 
+		ORDER BY path
+		LIMIT $2::TEXT::INTEGER
+	`
+	getPostsLimitParentTreeSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1 AND path[1] IN (
+			SELECT path[1] 
+			FROM posts 
+			WHERE thread = $1 
+			GROUP BY path[1]
+			ORDER BY path[1]
+			LIMIT $2::TEXT::INTEGER
+		)
+		ORDER BY path
+	`
+	getPostsLimitFlatSQL = `
+		SELECT id, author, parent, message, forum, thread, created
+		FROM posts
+		WHERE thread = $1 
+		ORDER BY id
+		LIMIT $2::TEXT::INTEGER
+	`
+	// ThreadVote	
+	getThreadVoteByIDSQL = `
+		SELECT votes.voice, threads.id, threads.votes, u.nickname
+		FROM (SELECT 1) s
+		LEFT JOIN threads ON threads.id = $1
+		LEFT JOIN "users" u ON u.nickname = $2
+		LEFT JOIN votes ON threads.id = votes.thread AND u.nickname = votes.nickname
+	`
+
+	getThreadVoteBySlugSQL = `
+		SELECT votes.voice, threads.id, threads.votes, u.nickname
+		FROM (SELECT 1) s
+		LEFT JOIN threads ON threads.slug = $1
+		LEFT JOIN users as u ON u.nickname = $2
+		LEFT JOIN votes ON threads.id = votes.thread AND u.nickname = votes.nickname
+	`
+	insertVoteSQL = `
+		INSERT INTO votes (thread, nickname, voice) 
+		VALUES ($1, $2, $3)
+	`
+	updateVoteSQL = `
+		UPDATE votes SET 
+		voice = $3
+		WHERE thread = $1 
+		AND nickname = $2
+	`
+	updateThreadVotesSQL = `
+		UPDATE threads SET
+		votes = $1
+		WHERE id = $2
+		RETURNING author, created, forum, "message" , slug, title, id, votes
+	`
 )
 
 func isNumber(s string) bool {
@@ -206,4 +329,138 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		insertPosts = append(insertPosts, &post) 
 	}
 	return &insertPosts, nil
+}
+
+// НЕ ТЕСТИРОВАЛ
+// /thread/{slug_or_id}/posts Сообщения данной ветви обсуждения
+func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, error) {
+	thread, err := CreateThreadDB(param)
+	if err != nil {
+		return nil, err
+	}
+	var rows *pgx.Rows
+
+	if since != "" {
+		if desc == "true" {
+			switch sort {
+			case "tree":
+				rows, err = DB.pool.Query(getPostsSienceDescLimitTreeSQL, thread.ID, since, limit)
+			case "parent_tree":
+				rows, err = DB.pool.Query(getPostsSienceDescLimitParentTreeSQL, thread.ID, since, limit)
+			default:
+				rows, err = DB.pool.Query(getPostsSienceDescLimitFlatSQL, thread.ID, since, limit)
+			}
+		} else {
+			switch sort {
+			case "tree":
+				rows, err = DB.pool.Query(getPostsSienceLimitTreeSQL, thread.ID, since, limit)
+			case "parent_tree":
+				rows, err = DB.pool.Query(getPostsSienceLimitParentTreeSQL, thread.ID, since, limit)
+			default:
+				rows, err = DB.pool.Query(getPostsSienceLimitFlatSQL, thread.ID, since, limit)
+			}
+		}
+	} else {
+		if desc == "true" {
+			switch sort {
+			case "tree":
+				rows, err = DB.pool.Query(getPostsDescLimitTreeSQL, thread.ID, limit)
+			case "parent_tree":
+				rows, err = DB.pool.Query(getPostsDescLimitParentTreeSQL, thread.ID, limit)
+			default:
+				rows, err = DB.pool.Query(getPostsDescLimitFlatSQL, thread.ID, limit)
+			}
+		} else {
+			switch sort {
+			case "tree":
+				rows, err = DB.pool.Query(getPostsLimitTreeSQL, thread.ID, limit)
+			case "parent_tree":
+				rows, err = DB.pool.Query(getPostsLimitParentTreeSQL, thread.ID, limit)
+			default:
+				rows, err = DB.pool.Query(getPostsLimitFlatSQL, thread.ID, limit)
+			}
+		}
+	}
+	defer rows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	posts := models.Posts{}
+	for queryRows.Next() {
+		post := models.Post{}
+
+		if err = queryRows.Scan(
+			&post.Id,
+			&post.Author,
+			&post.Parent,
+			&post.Message,
+			&post.Forum,
+			&post.Thread,
+			&post.Created,
+		); err != nil {
+			return nil, err
+		}
+		posts = append(posts, &post)
+	}
+
+	return &posts, nil
+}
+
+// УБРАТЬ КОСТЫЛИ
+// НЕ ТЕСТИРОВАЛ
+// /thread/{slug_or_id}/vote Проголосовать за ветвь обсуждения
+func MakeThreadVoteDB(vote *models.Vote, param string) *models.Thread {
+	var err error
+	prevVoice := &pgtype.Int4{}
+	threadID := &pgtype.Int4{}
+	threadVotes := &pgtype.Int4{}
+	userNickname := &pgtype.Varchar{}
+
+	if IsNumber(param) {
+		id, _ := strconv.Atoi(param)
+		err = DB.pool.QueryRow(getThreadVoteByIDSQL, id, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
+	} else {
+		err = DB.pool.QueryRow(getThreadVoteBySlugSQL, param, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
+	}
+	if err != nil {
+		return nil
+	}
+	if threadID.Status != pgtype.Present || userNickname.Status != pgtype.Present {
+		return nil
+	}
+	var prevVoiceInt int32
+	if prevVoice.Status == pgtype.Present {
+		prevVoiceInt = int32(prevVoice.Int)
+		_, err = DB.pool.Exec(updateVoteSQL, threadID.Int, userNickname.String, vote.Voice)
+	} else {
+		_, err = DB.pool.Exec(insertVoteSQL, threadID.Int, userNickname.String, vote.Voice)
+	}
+	newVotes := threadVotes.Int + (int32(vote.Voice) - prevVoiceInt)
+	if err != nil {
+		return nil
+	}
+	thread := &models.Thread{}
+	slugNullable := &pgtype.Varchar{}
+	err = DB.pool.QueryRow(
+		updateThreadVotesSQL,
+		newVotes,
+		threadID.Int,
+	).Scan(
+		&thread.Author,
+		&thread.Created,
+		thread.Forum,
+		&thread.Message,
+		lugNullable,
+		&thread.Title,
+		&thread.Id,
+		&thread.Votes,
+	)
+	thread.Slug = slugNullable.String
+	if err != nil {
+		return nil
+	}
+
+	return thread
 }

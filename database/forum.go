@@ -188,7 +188,7 @@ func CreateForumThreadDB(t *models.Thread) (*models.Thread, error) {
 }
 
 // /forum/{slug}/threads Список ветвей обсужления форума
-func GetForumThreadsDB(slug string, limit, since, desc string) (*models.Threads, error) {
+func GetForumThreadsDB(slug, limit, since, desc string) (*models.Threads, error) {
 	var rows *pgx.Rows
 	var err error
 
