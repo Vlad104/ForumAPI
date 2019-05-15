@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"io/ioutil"
-	"../database"
 	"encoding/json"
-	//"github.com/bozaro/tech-db-forum/generated/client/operations"
-	// "github.com/go-openapi/strfmt"
-	"github.com/bozaro/tech-db-forum/generated/models"
+	"../database"
+	"../models"
 	"github.com/gorilla/mux"
 	"github.com/go-openapi/swag"
 )

@@ -1,10 +1,8 @@
 package database
 
 import (
-	// "bytes"
-	// "github.com/jackc/pgx"
-	"github.com/bozaro/tech-db-forum/generated/models"
 	// "fmt"
+	"../models"
 )
 
 const (

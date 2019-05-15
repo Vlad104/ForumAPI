@@ -1,14 +1,13 @@
 package database
 
 import (
-	// "bytes"
 	"fmt"
 	"strconv"
-	"github.com/bozaro/tech-db-forum/generated/models"
-	// "../models"
 	"time"
-	//strfmt "github.com/go-openapi/strfmt"
-	// strmft "github.com/bozaro/tech-db-forum/vendor/github.com/go-openapi/strfmt"
+	"strings"
+	"../models"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgtype"
 )
 
 const (
@@ -188,7 +187,6 @@ func GetThreadDB(param string) (*models.Thread, error) {
 		query = getThreadIdSQL
 	}
 
-	var datetime time.Time
 	err = DB.pool.QueryRow(
 		query,
 		param,
@@ -200,11 +198,8 @@ func GetThreadDB(param string) (*models.Thread, error) {
 		&thread.Message,
 		&thread.Votes,
 		&thread.Slug,
-		// &thread.Created,
-		&datetime,
+		&thread.Created,
 	)
-	pdatetime := strfmt.DateTime(datetime)
-	thread.Created = &pdatetime
 	fmt.Println(thread)
 	fmt.Println(err)
 	if err != nil {
@@ -258,7 +253,7 @@ func authorExists(nickname string) bool {
 }
 
 // переделать
-func parentExitsInOtherThread(parent int64, threadID int) bool {
+func parentExitsInOtherThread(parent int64, threadID int32) bool {
 	var t int
 	rows := DB.pool.QueryRow(`
 		SELECT id
@@ -272,6 +267,21 @@ func parentExitsInOtherThread(parent int64, threadID int) bool {
 		}
 	}
 	return true
+}
+
+func parentNotExists(parent int64) bool {
+	if parent == 0 {
+		return false
+	}
+
+	var t int
+	err := DB.pool.QueryRow(`SELECT id FROM posts WHERE id = $1`, parent,).Scan(&t); 
+	
+	if err != nil {
+		return true
+	}
+
+	return false
 }
 
 // /thread/{slug_or_id}/create Создание новых постов
@@ -288,7 +298,7 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	// надо подумать
 	// пока такой костыль
 	created := time.Now().Format("2006-01-02 15:04:05")
-	var query := strings.Builder{}
+	query := strings.Builder{}
 	query.WriteString("INSERT INTO posts (author, created, message, thread, parent, forum, path) VALUES ")
 	queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (select currval(pg_get_serial_sequence('posts', 'id')))),"
 	queryBodyEnd := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (select currval(pg_get_serial_sequence('posts', 'id'))))"
@@ -296,15 +306,15 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		if authorExists(post.Author) {
 			return nil, UserNotFound
 		}
-		if parentExitsInOtherThread(post.Parent, thread.Id) || parentNotExists(post.Parent) {
+		if parentExitsInOtherThread(post.Parent, thread.ID) || parentNotExists(post.Parent) {
 			return nil, PostParentNotFound
 		}
 
 		// можно оптимизировать
 		if i < len(*posts) - 1 {
-			queryBuilder.WriteString(fmt.Sprintf(queryBody, post.Author, created, post.Message, thread.Id, post.Parent, thread.Forum, post.Parent))
+			query.WriteString(fmt.Sprintf(queryBody, post.Author, created, post.Message, thread.ID, post.Parent, thread.Forum, post.Parent))
 		} else {
-			queryBuilder.WriteString(fmt.Sprintf(queryBodyEnd, post.Author, created, post.Message, thread.Id, post.Parent, thread.Forum, post.Parent))
+			query.WriteString(fmt.Sprintf(queryBodyEnd, post.Author, created, post.Message, thread.ID, post.Parent, thread.Forum, post.Parent))
 		}
 
 	}
@@ -314,14 +324,14 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	if err != nil {
 		return nil, err
 	}
-	insertPosts := := models.Posts{}
+	insertPosts := models.Posts{}
 	for rows.Next() {
 		post := models.Post{}
 		_ = rows.Scan(
 			&post.Author,
 			&post.Created,
 			&post.Forum,
-			&post.Id,
+			&post.ID,
 			&post.Message,
 			&post.Parent,
 			&post.Thread,
@@ -334,7 +344,7 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 // НЕ ТЕСТИРОВАЛ
 // /thread/{slug_or_id}/posts Сообщения данной ветви обсуждения
 func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, error) {
-	thread, err := CreateThreadDB(param)
+	thread, err := GetThreadDB(param)
 	if err != nil {
 		return nil, err
 	}
@@ -388,11 +398,11 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 	}
 
 	posts := models.Posts{}
-	for queryRows.Next() {
+	for rows.Next() {
 		post := models.Post{}
 
-		if err = queryRows.Scan(
-			&post.Id,
+		if err = rows.Scan(
+			&post.ID,
 			&post.Author,
 			&post.Parent,
 			&post.Message,
@@ -418,7 +428,7 @@ func MakeThreadVoteDB(vote *models.Vote, param string) *models.Thread {
 	threadVotes := &pgtype.Int4{}
 	userNickname := &pgtype.Varchar{}
 
-	if IsNumber(param) {
+	if isNumber(param) {
 		id, _ := strconv.Atoi(param)
 		err = DB.pool.QueryRow(getThreadVoteByIDSQL, id, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
 	} else {
@@ -452,9 +462,9 @@ func MakeThreadVoteDB(vote *models.Vote, param string) *models.Thread {
 		&thread.Created,
 		thread.Forum,
 		&thread.Message,
-		lugNullable,
+		slugNullable,
 		&thread.Title,
-		&thread.Id,
+		&thread.ID,
 		&thread.Votes,
 	)
 	thread.Slug = slugNullable.String

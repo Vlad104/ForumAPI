@@ -2,15 +2,8 @@ package service
 
 import (	
 	"fmt"
-	// "strconv"
 	"net/http"
-	// "io/ioutil"
 	"../database"
-	// "encoding/json"
-	//"github.com/bozaro/tech-db-forum/generated/client/operations"
-	// "github.com/bozaro/tech-db-forum/generated/models"
-	// "github.com/gorilla/mux"
-	// "github.com/go-openapi/swag"
 )
 
 

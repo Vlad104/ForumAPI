@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"io/ioutil"
-	"../database"
 	"encoding/json"
-	"github.com/bozaro/tech-db-forum/generated/models"
+	"../database"
+	"../models"
 	"github.com/gorilla/mux"
-	// "github.com/go-openapi/swag"
+	"github.com/go-openapi/swag"
 )
 
 // /thread/{slug_or_id}/details Получение информации о ветке обсуждения
@@ -86,9 +86,10 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := database.CreatePostDB(posts, param)
+	result, err := database.CreateThreadDB(posts, param)
 
-	resp, _ := result.MarshalBinary()
+	// resp, _ := result.MarshalBinary()
+	resp, _ := swag.WriteJSON(result)
 	switch err {
 	case nil:
 		makeResponse(w, 200, resp)
@@ -108,7 +109,7 @@ func GetThreadPosts(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	slug := params["slug"]
 	queryParams := r.URL.Query()
-	var limit, since, desc string
+	var limit, since, sort, desc string
 	if limit = queryParams.Get("limit"); limit != "" {
 		limit = "1";
 	}
@@ -159,7 +160,7 @@ func MakeThreadVote(w http.ResponseWriter, r *http.Request) {
 	vote := &models.Vote{}
 	err = json.Unmarshal(body, &vote)
 
-	result, err := database.MakeThreadVote(vote, param)
+	result := database.MakeThreadVoteDB(vote, param)
 	fmt.Println(result)
 	fmt.Println(err)
 	
@@ -168,6 +169,7 @@ func MakeThreadVote(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("DB result")
 	fmt.Println(string(resp))
 	fmt.Println(err)
+	// КАКАЯ ЭТО ОШИБКА??
 	switch err {
 	case nil:
 		makeResponse(w, 200, resp)
