@@ -13,7 +13,6 @@ import (
 
 // /user/{nickname}/create Создание нового пользователя
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("CreateUser")
 	params := mux.Vars(r)
 	nickname := params["nickname"]
 
@@ -29,12 +28,9 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	//err = forum.Validate()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	result, err := database.CreateUserDB(user)
-	fmt.Println(result)
-	fmt.Println(err)
 
 	switch err {
 	case nil:
@@ -51,7 +47,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // /user/{nickname}/profile Получение информации о пользователе
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("GetUser")
 	params := mux.Vars(r)
 	nickname := params["nickname"]
 
@@ -65,7 +60,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 200, resp)
 	case database.UserNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorUser(nickname)))
 	default:		
 		makeResponse(w, 500, []byte("Hello here"))
 	}
@@ -99,10 +94,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	switch err {
 	case nil:
 		makeResponse(w, 200, resp)
-	case database.UserIsExist:
+	case database.UserNotFound:
 		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
-	case database.UserIsExist:
-		makeResponse(w, 409, resp)
+	case database.UserUpdateConflict:
+		makeResponse(w, 409, []byte("Can't find user with id #42\n"))
 	default:		
 		makeResponse(w, 500, []byte("Can't find user with id #42\n"))
 	}

@@ -13,11 +13,9 @@ import (
 
 // /forum/create Создание форума
 func CreateForum(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("CreateForum")
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}	
 	forum := &models.Forum{}
@@ -31,16 +29,13 @@ func CreateForum(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := database.CreateForumDB(forum)
+	resp, _ := result.MarshalBinary()
 
-	resp, err1 := result.MarshalBinary()
-	fmt.Println("DB result")
-	fmt.Println(string(resp))
-	fmt.Println(err1)
 	switch err {
 	case nil:
 		makeResponse(w, 201, resp)
 	case database.UserNotFound:
-		makeResponse(w, 404, []byte("Hello1 "))
+		makeResponse(w, 404, []byte(makeErrorUser(forum.User)))
 	case database.ForumIsExist:
 		makeResponse(w, 409, resp)
 	default:		
@@ -50,21 +45,17 @@ func CreateForum(w http.ResponseWriter, r *http.Request) {
 
 // /forum/{slug}/details Получение информации о форуме
 func GetForum(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("GetForum")
 	params := mux.Vars(r)
 	slug := params["slug"]
 
 	result, err := database.GetForumDB(slug)
 
-	resp, err1 := result.MarshalBinary()
-	fmt.Println("DB result")
-	fmt.Println(string(resp))
-	fmt.Println(err1)
+	resp, _ := result.MarshalBinary()
 	switch err {
 	case nil:
 		makeResponse(w, 200, resp)
 	case database.ForumNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorForum(slug)))
 	default:		
 		makeResponse(w, 500, []byte("Hello here"))
 	}
@@ -84,7 +75,7 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 	}	
 	thread := &models.Thread{}
 	err = json.Unmarshal(body, &thread)
-	thread.Slug = slug
+	// thread.Slug = slug
 	thread.Forum = slug // иначе не знаю как
 
 	//err = forum.Validate()
@@ -103,9 +94,9 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 201, resp)
 	case database.UserNotFound:
-		makeResponse(w, 404, []byte("Hello1 "))
+		makeResponse(w, 404, []byte(makeErrorUser(slug)))
 	case database.ForumIsExist:
-		makeResponse(w, 409, resp)
+		makeResponse(w, 409, []byte(makeErrorForum(slug)))
 	default:		
 		makeResponse(w, 500, []byte("Hello2 "))
 	}
@@ -143,7 +134,7 @@ func GetForumThreads(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 200, resp)
 	case database.ForumNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorForum(slug)))
 	default:		
 		makeResponse(w, 500, []byte("Hello here"))
 	}
@@ -180,7 +171,7 @@ func GetForumUsers(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 200, resp)
 	case database.ForumNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorUser(slug)))
 	default:		
 		makeResponse(w, 500, []byte("Hello here"))
 	}

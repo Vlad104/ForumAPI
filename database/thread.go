@@ -184,22 +184,37 @@ func GetThreadDB(param string) (*models.Thread, error) {
 
 	query := getThreadSlugSQL
 	if isNumber(param) {
-		query = getThreadIdSQL
+		// возможно можно сократить
+		id, _ := strconv.Atoi(param)		
+		err = DB.pool.QueryRow(
+			getThreadIdSQL,
+			id,
+		).Scan(
+			&thread.ID,
+			&thread.Title,
+			&thread.Author,
+			&thread.Forum,
+			&thread.Message,
+			&thread.Votes,
+			&thread.Slug,
+			&thread.Created,
+		)
+	} else {
+		err = DB.pool.QueryRow(
+			query,
+			param,
+		).Scan(
+			&thread.ID,
+			&thread.Title,
+			&thread.Author,
+			&thread.Forum,
+			&thread.Message,
+			&thread.Votes,
+			&thread.Slug,
+			&thread.Created,
+		)
 	}
 
-	err = DB.pool.QueryRow(
-		query,
-		param,
-	).Scan(
-		&thread.ID,
-		&thread.Title,
-		&thread.Author,
-		&thread.Forum,
-		&thread.Message,
-		&thread.Votes,
-		&thread.Slug,
-		&thread.Created,
-	)
 	fmt.Println(thread)
 	fmt.Println(err)
 	if err != nil {
@@ -213,7 +228,7 @@ func GetThreadDB(param string) (*models.Thread, error) {
 func UpdateThreadDB(thread *models.ThreadUpdate, param string) (*models.Thread, error) {
 	threadFound, err := GetThreadDB(param)
 	if err != nil {
-		return nil, err
+		return nil, PostNotFound
 	}
 
 	updatedThread := models.Thread{}
@@ -291,6 +306,8 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		return nil, err
 	}
 
+	fmt.Println("psts len")
+	fmt.Println("len(*posts) == 0")	
 	if len(*posts) == 0 {
 		return posts, nil
 	}

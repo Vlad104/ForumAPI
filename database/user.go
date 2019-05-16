@@ -30,10 +30,10 @@ const (
 	updateUserSQL = `
 		UPDATE users
 		SET fullname = coalesce(nullif($2, ''), fullname),
-			about    = coalesce(nullif($3, ''), about),
-			email    = coalesce(nullif($4, ''), email)
+			email    = coalesce(nullif($3, ''), email),
+			about    = coalesce(nullif($4, ''), about)
 		WHERE "nickname" = $1
-		RETURNING fullname, about, email, nickname
+		RETURNING nickname, fullname, email, about
 	`
 )
 
@@ -78,8 +78,8 @@ func GetUserDB(nickname string) (*models.User, error) {
 	err := DB.pool.QueryRow(getUserSQL, nickname).Scan(
 		&user.Nickname,
 		&user.Fullname,
-		&user.About,
 		&user.Email,
+		&user.About,
 	)
 
 	if err != nil {
@@ -94,13 +94,13 @@ func UpdateUserDB(user *models.User) error {
 	err := DB.pool.QueryRow(updateUserSQL,
 		&user.Nickname,
 		&user.Fullname,
-		&user.About,
 		&user.Email,
+		&user.About,
 	).Scan(
-		&user.Fullname,
-		&user.About,
-		&user.Email,
 		&user.Nickname,
+		&user.Fullname,
+		&user.Email,
+		&user.About,
 	)
 
 	if err != nil {

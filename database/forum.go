@@ -178,9 +178,9 @@ func CreateForumThreadDB(t *models.Thread) (*models.Thread, error) {
 	case pgxOK:
 		return t, nil
 	case pgxErrNotNull:
-		return nil, ForumOrAuthorNotFound
+		return nil, UserNotFound
 	case pgxErrForeignKey:
-		return nil, ForumOrAuthorNotFound
+		return nil, ForumIsExist
 	default:
 		return nil, err
 	}

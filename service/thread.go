@@ -25,7 +25,7 @@ func GetThread(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 200, resp)
 	case database.ThreadNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorThread(param)))
 	default:		
 		makeResponse(w, 500, []byte("Hello here"))
 	}
@@ -59,7 +59,7 @@ func UpdateThread(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 200, resp)
 	case database.PostNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorThread(param)))
 	default:		
 		makeResponse(w, 500, []byte("Hello2 "))
 	}
@@ -92,7 +92,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	resp, _ := swag.WriteJSON(result)
 	switch err {
 	case nil:
-		makeResponse(w, 200, resp)
+		makeResponse(w, 201, resp)
 	case database.PostNotFound:
 		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
 	case database.PostNotFound:
