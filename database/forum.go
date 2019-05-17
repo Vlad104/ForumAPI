@@ -31,7 +31,7 @@ const (
 	getForumThreadsSinceSQL = `
 		SELECT author, created, forum, id, message, slug, title, votes
 		FROM threads
-		WHERE forum = $1 AND created > $2::TEXT::TIMESTAMPTZ
+		WHERE forum = $1 AND created >= $2::TEXT::TIMESTAMPTZ
 		ORDER BY created
 		LIMIT $3::TEXT::INTEGER
 	`
@@ -76,7 +76,7 @@ const (
 				UNION
 				SELECT author FROM posts WHERE forum = $1
 			) 
-			AND LOWER(nickname) <= LOWER($2::TEXT)
+			AND LOWER(nickname) < LOWER($2::TEXT)
 		ORDER BY nickname DESC
 		LIMIT $3::TEXT::INTEGER
 	`
@@ -178,9 +178,9 @@ func CreateForumThreadDB(t *models.Thread) (*models.Thread, error) {
 	case pgxOK:
 		return t, nil
 	case pgxErrNotNull:
-		return nil, UserNotFound
+		return nil, ForumOrAuthorNotFound //UserNotFound
 	case pgxErrForeignKey:
-		return nil, ForumIsExist
+		return nil, ForumOrAuthorNotFound //ForumIsExist
 	default:
 		return nil, err
 	}

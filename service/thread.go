@@ -88,12 +88,14 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.CreateThreadDB(posts, param)
 
-	// resp, _ := result.MarshalBinary()
 	resp, _ := swag.WriteJSON(result)
+	fmt.Println(err)
 	switch err {
 	case nil:
 		makeResponse(w, 201, resp)
-	case database.PostNotFound:
+	case database.ThreadNotFound:
+		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+	case database.UserNotFound:
 		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
 	case database.PostNotFound:
 		makeResponse(w, 409, []byte("Can't find user with id #42\n"))
@@ -160,7 +162,7 @@ func MakeThreadVote(w http.ResponseWriter, r *http.Request) {
 	vote := &models.Vote{}
 	err = json.Unmarshal(body, &vote)
 
-	result := database.MakeThreadVoteDB(vote, param)
+	result, err := database.MakeThreadVoteDB(vote, param)
 	fmt.Println(result)
 	fmt.Println(err)
 	
@@ -169,7 +171,7 @@ func MakeThreadVote(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("DB result")
 	fmt.Println(string(resp))
 	fmt.Println(err)
-	// КАКАЯ ЭТО ОШИБКА??
+	
 	switch err {
 	case nil:
 		makeResponse(w, 200, resp)

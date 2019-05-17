@@ -167,7 +167,7 @@ const (
 		UPDATE threads SET
 		votes = $1
 		WHERE id = $2
-		RETURNING author, created, forum, "message" , slug, title, id, votes
+		RETURNING author, created, forum, "message", slug, title, id, votes
 	`
 )
 
@@ -307,7 +307,7 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	}
 
 	fmt.Println("psts len")
-	fmt.Println("len(*posts) == 0")	
+	fmt.Println(len(*posts))	
 	if len(*posts) == 0 {
 		return posts, nil
 	}
@@ -438,7 +438,7 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 // УБРАТЬ КОСТЫЛИ
 // НЕ ТЕСТИРОВАЛ
 // /thread/{slug_or_id}/vote Проголосовать за ветвь обсуждения
-func MakeThreadVoteDB(vote *models.Vote, param string) *models.Thread {
+func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	var err error
 	prevVoice := &pgtype.Int4{}
 	threadID := &pgtype.Int4{}
@@ -452,10 +452,10 @@ func MakeThreadVoteDB(vote *models.Vote, param string) *models.Thread {
 		err = DB.pool.QueryRow(getThreadVoteBySlugSQL, param, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
 	}
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	if threadID.Status != pgtype.Present || userNickname.Status != pgtype.Present {
-		return nil
+		return nil, err
 	}
 	var prevVoiceInt int32
 	if prevVoice.Status == pgtype.Present {
@@ -466,10 +466,10 @@ func MakeThreadVoteDB(vote *models.Vote, param string) *models.Thread {
 	}
 	newVotes := threadVotes.Int + (int32(vote.Voice) - prevVoiceInt)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	thread := &models.Thread{}
-	slugNullable := &pgtype.Varchar{}
+	// slugNullable := &pgtype.Varchar{}
 	err = DB.pool.QueryRow(
 		updateThreadVotesSQL,
 		newVotes,
@@ -477,17 +477,19 @@ func MakeThreadVoteDB(vote *models.Vote, param string) *models.Thread {
 	).Scan(
 		&thread.Author,
 		&thread.Created,
-		thread.Forum,
+		&thread.Forum,
 		&thread.Message,
-		slugNullable,
+		&thread.Slug,
+		// slugNullable,
 		&thread.Title,
 		&thread.ID,
 		&thread.Votes,
 	)
-	thread.Slug = slugNullable.String
+	// thread.Slug = slugNullable.String
 	if err != nil {
-		return nil
+		fmt.Println("here1", err)
+		return nil, err
 	}
 
-	return thread
+	return thread, nil
 }

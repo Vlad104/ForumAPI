@@ -75,7 +75,6 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 	}	
 	thread := &models.Thread{}
 	err = json.Unmarshal(body, &thread)
-	// thread.Slug = slug
 	thread.Forum = slug // иначе не знаю как
 
 	//err = forum.Validate()
@@ -93,10 +92,10 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 	switch err {
 	case nil:
 		makeResponse(w, 201, resp)
-	case database.UserNotFound:
+	case database.ForumOrAuthorNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(slug)))
-	case database.ForumIsExist:
-		makeResponse(w, 409, []byte(makeErrorForum(slug)))
+	case database.ThreadIsExist:
+		makeResponse(w, 409, resp)
 	default:		
 		makeResponse(w, 500, []byte("Hello2 "))
 	}
@@ -110,13 +109,13 @@ func GetForumThreads(w http.ResponseWriter, r *http.Request) {
 	slug := params["slug"]
 	queryParams := r.URL.Query()
 	var limit, since, desc string
-	if limit = queryParams.Get("limit"); limit != "" {
+	if limit = queryParams.Get("limit"); limit == "" {
 		limit = "1";
 	}
-	if since = queryParams.Get("since"); limit != "" {
+	if since = queryParams.Get("since"); limit == "" {
 		since = "";
 	}
-	if desc = queryParams.Get("desc"); limit != ""{
+	if desc = queryParams.Get("desc"); limit == ""{
 		desc = "false";
 	}
 	fmt.Println(limit, since, desc)
@@ -147,13 +146,13 @@ func GetForumUsers(w http.ResponseWriter, r *http.Request) {
 	slug := params["slug"]
 	queryParams := r.URL.Query()
 	var limit, since, desc string
-	if limit = queryParams.Get("limit"); limit != "" {
+	if limit = queryParams.Get("limit"); limit == "" {
 		limit = "1";
 	}
-	if since = queryParams.Get("since"); limit != "" {
+	if since = queryParams.Get("since"); limit == "" {
 		since = "";
 	}
-	if desc = queryParams.Get("desc"); limit != ""{
+	if desc = queryParams.Get("desc"); limit == ""{
 		desc = "false";
 	}
 	fmt.Println(limit, since, desc)

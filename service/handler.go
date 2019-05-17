@@ -15,6 +15,10 @@ func makeErrorUser(s string) string {
 	return fmt.Sprintf(`{"message": "Can't find user by nickname: %s"}`, s)
 }
 
+func makeErrorEmail(s string) string {
+	return fmt.Sprintf(`{"message": "This email is already registered by user: %s"}`, s)
+}
+
 func makeErrorForum(s string) string {
 	return fmt.Sprintf(`{"message": "Can't find forum with slug: %s"}`, s)
 }

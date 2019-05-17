@@ -95,9 +95,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 200, resp)
 	case database.UserNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorUser(nickname)))
 	case database.UserUpdateConflict:
-		makeResponse(w, 409, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 409, []byte(makeErrorEmail(nickname)))
 	default:		
 		makeResponse(w, 500, []byte("Can't find user with id #42\n"))
 	}

@@ -91,7 +91,8 @@ func GetUserDB(nickname string) (*models.User, error) {
 
 // /user/{nickname}/profile Изменение данных о пользователе
 func UpdateUserDB(user *models.User) error {
-	err := DB.pool.QueryRow(updateUserSQL,
+	err := DB.pool.QueryRow(
+		updateUserSQL,
 		&user.Nickname,
 		&user.Fullname,
 		&user.Email,
@@ -104,7 +105,7 @@ func UpdateUserDB(user *models.User) error {
 	)
 
 	if err != nil {
-		if ErrorCode(err) == pgxOK {
+		if ErrorCode(err) != pgxOK {
 			return UserUpdateConflict
 		}
 		return UserNotFound

@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS posts (
   "isEdited" BOOLEAN        DEFAULT FALSE,
   "message"  TEXT           NOT NULL,
   "parent"   INTEGER        DEFAULT 0,
-  "thread"   INTEGER        NOT NULL REFERENCES threads ("id")
+  "thread"   INTEGER        NOT NULL REFERENCES threads ("id"),
+  "path"     BIGINT []
 );
 
 CREATE TABLE IF NOT EXISTS votes (
