@@ -149,10 +149,10 @@ func GetForumUsers(w http.ResponseWriter, r *http.Request) {
 	if limit = queryParams.Get("limit"); limit == "" {
 		limit = "1";
 	}
-	if since = queryParams.Get("since"); limit == "" {
+	if since = queryParams.Get("since"); since == "" {
 		since = "";
 	}
-	if desc = queryParams.Get("desc"); limit == ""{
+	if desc = queryParams.Get("desc"); desc == ""{
 		desc = "false";
 	}
 	fmt.Println(limit, since, desc)

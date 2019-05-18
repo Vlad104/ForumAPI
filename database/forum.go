@@ -64,7 +64,7 @@ const (
 			UNION
 			SELECT author FROM posts WHERE forum = $1
 		) 
-		AND LOWER(nickname) > LOWER($1::TEXT)
+		AND LOWER(nickname) > LOWER($2::TEXT)
 	ORDER BY nickname
 	LIMIT $3::TEXT::INTEGER
 	`
@@ -312,7 +312,7 @@ func GetForumUsersDB(slug string, limit, since, desc string) (*models.Users, err
 	if len(users) == 0 {
 		_, err := GetForumDB(slug)
 		if err != nil {
-			return nil, UserNotFound
+			return nil, ForumNotFound
 		}
 	}	
 	return &users, nil

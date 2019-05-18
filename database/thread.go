@@ -185,7 +185,7 @@ func GetThreadDB(param string) (*models.Thread, error) {
 	query := getThreadSlugSQL
 	if isNumber(param) {
 		// возможно можно сократить
-		id, _ := strconv.Atoi(param)		
+		id, _ := strconv.Atoi(param)
 		err = DB.pool.QueryRow(
 			getThreadIdSQL,
 			id,
@@ -363,7 +363,7 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, error) {
 	thread, err := GetThreadDB(param)
 	if err != nil {
-		return nil, err
+		return nil, ForumNotFound
 	}
 	var rows *pgx.Rows
 
@@ -418,7 +418,7 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 	for rows.Next() {
 		post := models.Post{}
 
-		if err = rows.Scan(
+		err = rows.Scan(
 			&post.ID,
 			&post.Author,
 			&post.Parent,
@@ -426,7 +426,8 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 			&post.Forum,
 			&post.Thread,
 			&post.Created,
-		); err != nil {
+		)
+		if err != nil {
 			return nil, err
 		}
 		posts = append(posts, &post)

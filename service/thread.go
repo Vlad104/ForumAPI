@@ -94,7 +94,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 201, resp)
 	case database.ThreadNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorThreadID(param)))
 	case database.UserNotFound:
 		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
 	case database.PostNotFound:
@@ -109,24 +109,24 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 func GetThreadPosts(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("GetThreadPosts")
 	params := mux.Vars(r)
-	slug := params["slug"]
+	param := params["slug_or_id"]
 	queryParams := r.URL.Query()
 	var limit, since, sort, desc string
-	if limit = queryParams.Get("limit"); limit != "" {
+	if limit = queryParams.Get("limit"); limit == "" {
 		limit = "1";
 	}
-	if since = queryParams.Get("since"); limit != "" {
+	if since = queryParams.Get("since"); since == "" {
 		since = "";
 	}
-	if sort = queryParams.Get("sort"); limit != ""{
+	if sort = queryParams.Get("sort"); sort == ""{
 		sort = "flat";
 	}
-	if desc = queryParams.Get("desc"); limit != ""{
+	if desc = queryParams.Get("desc"); desc == ""{
 		desc = "false";
 	}
-	fmt.Println(limit, since, sort, desc)
+	fmt.Println(param, limit, since, sort, desc)
 
-	result, err := database.GetThreadPostsDB(slug, limit, since, sort, desc)
+	result, err := database.GetThreadPostsDB(param, limit, since, sort, desc)
 	fmt.Println(result)
 	fmt.Println(err)
 	
@@ -139,7 +139,7 @@ func GetThreadPosts(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 200, resp)
 	case database.ForumNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorThread(param)))
 	default:		
 		makeResponse(w, 500, []byte("Hello here"))
 	}

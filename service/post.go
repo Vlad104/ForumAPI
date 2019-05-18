@@ -21,15 +21,17 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 		return
     }
 
-	result, err := database.GetPostDB(id)
+	result_temp, err := database.GetPostDB(id)
+	result := models.PostFull{}
+	result.Post = result_temp
 
 	resp, _ := result.MarshalBinary()
 	fmt.Println("DB result")
 	switch err {
 	case nil:
 		makeResponse(w, 200, resp)
-	case database.ForumNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+	case database.PostNotFound:
+		makeResponse(w, 404, []byte(makeErrorPost(string(id))))
 	default:		
 		makeResponse(w, 500, []byte("Hello here"))
 	}
@@ -70,7 +72,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 200, resp)
 	case database.PostNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorPost(string(id))))
 	default:		
 		makeResponse(w, 500, []byte("Hello2 "))
 	}

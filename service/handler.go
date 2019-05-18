@@ -26,3 +26,11 @@ func makeErrorForum(s string) string {
 func makeErrorThread(s string) string {
 	return fmt.Sprintf(`{"message": "Can't find thread by slug: %s"}`, s)
 }
+
+func makeErrorThreadID(s string) string {
+	return fmt.Sprintf(`{"message": "Can't find thread by slug: %s"}`, s)
+}
+
+func makeErrorPost(s string) string {
+	return fmt.Sprintf(`{"message": "Can't find post with id: %s"}`, s)
+}
