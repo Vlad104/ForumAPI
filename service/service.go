@@ -1,7 +1,6 @@
 package service
 
-import (	
-	"fmt"
+import (
 	"net/http"
 	"../database"
 )
@@ -9,7 +8,6 @@ import (
 
 // /service/status Получение инфомарции о базе данных
 func GetStatus(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("GetStatus")
 
 	result := database.GetStatusDB()
 	resp, err := result.MarshalBinary()
@@ -25,7 +23,6 @@ func GetStatus(w http.ResponseWriter, r *http.Request) {
 
 // /service/clear Очистка всех данных в базе
 func Clear(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Clear")
 	database.ClearDB()
 	makeResponse(w, 200, []byte("Очистка базы успешно завершена"))
 }

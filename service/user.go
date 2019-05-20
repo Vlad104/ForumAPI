@@ -1,7 +1,6 @@
 package service
 
 import (	
-	"fmt"
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
@@ -19,7 +18,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}	
 	user := &models.User{}
@@ -51,8 +49,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	nickname := params["nickname"]
 
 	result, err := database.GetUserDB(nickname)
-	fmt.Println(result)
-	fmt.Println(err)
 
 	resp, _ := result.MarshalBinary()
 
@@ -68,14 +64,12 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 // /user/{nickname}/profile Изменение данных о пользователе
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("UpdateUser")
 	params := mux.Vars(r)
 	nickname := params["nickname"]
 
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}	
 	user := &models.User{}
@@ -84,11 +78,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	//err = forum.Validate()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	err = database.UpdateUserDB(user)
-	fmt.Println(err)
 	resp, _ := user.MarshalBinary()
 
 	switch err {

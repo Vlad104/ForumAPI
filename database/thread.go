@@ -441,16 +441,22 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	threadVotes := &pgtype.Int4{}
 	userNickname := &pgtype.Varchar{}
 
-
+	var thrID int
 	if isNumber(param) {
 		id, _ := strconv.Atoi(param)
-		// err = DB.pool.QueryRow(`SELECT id, votes FROM threads WHERE id = $1`, id).Scan(threadID, threadVotes)
-		err = DB.pool.QueryRow(getThreadVoteByIDSQL, id, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
+		err = DB.pool.QueryRow(`SELECT id FROM threads WHERE id = $1`, id).Scan(&thrID)
 	} else {
-		// err = DB.pool.QueryRow(`SELECT id, votes FROM threads WHERE slug = $1`, param).Scan(threadID, threadVotes)
-		err = DB.pool.QueryRow(getThreadVoteBySlugSQL, param, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
-		fmt.Println("here0", err, param, prevVoice, threadID, threadVotes, userNickname)
+		err = DB.pool.QueryRow(`SELECT id FROM threads WHERE slug = $1`, param).Scan(&thrID)
+	}	
+	if err != nil {
+		return nil, ForumNotFound
 	}
+	var uNick string
+	err = DB.pool.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname).Scan(&uNick)	
+	if err != nil {
+		return nil, UserNotFound
+	}
+	err = DB.pool.QueryRow(getThreadVoteByIDSQL, thrID, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
 	if err != nil {
 		return nil, err
 	}
@@ -487,7 +493,6 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	)
 	// thread.Slug = slugNullable.String
 	if err != nil {
-		fmt.Println("here1", err)
 		return nil, err
 	}
 

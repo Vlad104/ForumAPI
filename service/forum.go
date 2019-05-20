@@ -1,7 +1,6 @@
 package service
 
-import (	
-	"fmt"
+import (
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
@@ -24,7 +23,6 @@ func CreateForum(w http.ResponseWriter, r *http.Request) {
 	// reg := strfmt.NewFormats()
 	// err = forum.Validate(reg)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
@@ -63,14 +61,12 @@ func GetForum(w http.ResponseWriter, r *http.Request) {
 
 // /forum/{slug}/create Создание ветки
 func CreateForumThread(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("CreateForumThread")
 	params := mux.Vars(r)
 	slug := params["slug"]
 
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}	
 	thread := &models.Thread{}
@@ -79,16 +75,12 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 
 	//err = forum.Validate()
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
 	result, err := database.CreateForumThreadDB(thread)
 
 	resp, _ := result.MarshalBinary()
-	fmt.Println("DB result")
-	fmt.Println(string(resp))
-	fmt.Println(err)
 	switch err {
 	case nil:
 		makeResponse(w, 201, resp)
@@ -104,7 +96,6 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 
 // /forum/{slug}/threads Список ветвей обсужления форума
 func GetForumThreads(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("GetForumThreads")
 	params := mux.Vars(r)
 	slug := params["slug"]
 	queryParams := r.URL.Query()
@@ -118,17 +109,11 @@ func GetForumThreads(w http.ResponseWriter, r *http.Request) {
 	if desc = queryParams.Get("desc"); limit == ""{
 		desc = "false";
 	}
-	fmt.Println(limit, since, desc)
 
 	result, err := database.GetForumThreadsDB(slug, limit, since, desc)
-	fmt.Println(result)
-	fmt.Println(err)
 	
 	// resp, _ := result.MarshalBinary()
 	resp, _ := swag.WriteJSON(result)
-	fmt.Println("DB result")
-	fmt.Println(string(resp))
-	fmt.Println(err)
 	switch err {
 	case nil:
 		makeResponse(w, 200, resp)
@@ -141,7 +126,6 @@ func GetForumThreads(w http.ResponseWriter, r *http.Request) {
 
 // /forum/{slug}/users Пользователи данного форума
 func GetForumUsers(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("GetForumUsers")
 	params := mux.Vars(r)
 	slug := params["slug"]
 	queryParams := r.URL.Query()
@@ -155,17 +139,11 @@ func GetForumUsers(w http.ResponseWriter, r *http.Request) {
 	if desc = queryParams.Get("desc"); desc == ""{
 		desc = "false";
 	}
-	fmt.Println(limit, since, desc)
 
 	result, err := database.GetForumUsersDB(slug, limit, since, desc)
-	fmt.Println(result)
-	fmt.Println(err)
 	
 	// resp, _ := result.MarshalBinary()
 	resp, _ := swag.WriteJSON(result)
-	fmt.Println("DB result")
-	fmt.Println(string(resp))
-	fmt.Println(err)
 	switch err {
 	case nil:
 		makeResponse(w, 200, resp)
