@@ -16,7 +16,7 @@ import (
 func GetPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("GetPost")
 	params := mux.Vars(r)
-	id, err := strconv.ParseInt(params["id"], 10, 64)
+	id, err := strconv.Atoi(params["id"])
 	fmt.Println(params["id"])
 	fmt.Println(id)
 	if err != nil {
