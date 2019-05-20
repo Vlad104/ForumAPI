@@ -27,10 +27,18 @@ func makeErrorThread(s string) string {
 	return fmt.Sprintf(`{"message": "Can't find thread by slug: %s"}`, s)
 }
 
+func makeErrorThreadConflict() string {
+	return `{"message": "Parent post was created in another thread"}`
+}
+
 func makeErrorThreadID(s string) string {
 	return fmt.Sprintf(`{"message": "Can't find thread by slug: %s"}`, s)
 }
 
 func makeErrorPost(s string) string {
 	return fmt.Sprintf(`{"message": "Can't find post with id: %s"}`, s)
+}
+
+func makeErrorPostAuthor(s string) string {
+	return fmt.Sprintf(`{"message": "Can't find post author by nickname: %s"}`, s)
 }

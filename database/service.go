@@ -1,7 +1,6 @@
 package database
 
 import (
-	// "fmt"
 	"../models"
 )
 
@@ -13,6 +12,13 @@ const (
 		CROSS JOIN (SELECT COUNT(*) FROM "forums") as forums
 		CROSS JOIN (SELECT COUNT(*) FROM "posts") as posts
 	`
+	// getStatusSQL = `
+	// 	SELECT (
+	// 	SELECT COUNT(*) FROM forum), 
+	// 	(SELECT COUNT(*) FROM thread), 
+	// 	(SELECT COUNT(*) FROM post), 
+	// 	(SELECT COUNT(*) FROM "user")
+	// `
 	clearSQL = `
 		TRUNCATE users, forums, threads, posts, votes;
 	`
@@ -24,10 +30,10 @@ func GetStatusDB() *models.Status {
 	DB.pool.QueryRow(
 		getStatusSQL,
 	).Scan(
-		&status.Thread, 
-		&status.Post, 
-		&status.Forum, 
 		&status.User,
+		&status.Thread,
+		&status.Forum,
+		&status.Post,
 	)
 	return status
 }

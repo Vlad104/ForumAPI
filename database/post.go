@@ -20,7 +20,7 @@ const (
 )
 
 // /post/{id}/details Получение информации о ветке обсуждения
-func GetPostDB(id int) (*models.Post, error) {
+func GetPostDB(id int64) (*models.Post, error) {
 	post := models.Post{}
 
 	rows := DB.pool.QueryRow(getPostSQL, id)
@@ -45,9 +45,34 @@ func GetPostDB(id int) (*models.Post, error) {
 	return &post, nil
 }
 
+
+// /post/{id}/details Получение информации о ветке обсуждения
+func GetPostFullDB(id int64, related []string) (*models.PostFull, error) {
+	postFull := models.PostFull{}
+	var err error
+	postFull.Post, err = GetPostDB(int64(id))
+
+	for _, model := range related {
+		switch model {
+		case "thread":
+			postFull.Thread, err = GetThreadDB(strconv.Itoa(int(postFull.Post.Thread)))
+		case "forum":
+			postFull.Forum, err = GetForumDB(postFull.Post.Forum)
+		case "user":
+			postFull.Author, err = GetUserDB(postFull.Post.Author)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &postFull, nil
+}
+
 // /post/{id}/details Изменение сообщения
 func UpdatePostDB(postUpdate *models.PostUpdate, id int) (*models.Post, error) {
-	post, err := GetPostDB(id)
+	post, err := GetPostDB(int64(id))
 	if err != nil {
 		return nil, PostNotFound
 	}

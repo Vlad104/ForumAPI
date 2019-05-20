@@ -96,9 +96,9 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	case database.ThreadNotFound:
 		makeResponse(w, 404, []byte(makeErrorThreadID(param)))
 	case database.UserNotFound:
-		makeResponse(w, 404, []byte("Can't find user with id #42\n"))
-	case database.PostNotFound:
-		makeResponse(w, 409, []byte("Can't find user with id #42\n"))
+		makeResponse(w, 404, []byte(makeErrorPostAuthor(param)))
+	case database.PostParentNotFound:
+		makeResponse(w, 409, []byte(makeErrorThreadConflict()))
 	default:		
 		makeResponse(w, 500, []byte("Hello2 "))
 	}
@@ -152,7 +152,7 @@ func MakeThreadVote(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("MakeThreadVoteDB")
 	params := mux.Vars(r)
 	param := params["slug_or_id"]
-	
+	fmt.Println("param", param)
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {

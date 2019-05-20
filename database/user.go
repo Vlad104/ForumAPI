@@ -1,8 +1,6 @@
 package database
 
 import (
-	// "fmt"
-	// "bytes"
 	"../models"
 )
 

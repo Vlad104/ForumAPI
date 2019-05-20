@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"../models"
 	"github.com/jackc/pgx"
 )
@@ -225,7 +224,6 @@ func GetForumThreadsDB(slug, limit, since, desc string) (*models.Threads, error)
 	defer rows.Close()
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, ForumNotFound
 	}
 	
@@ -293,7 +291,6 @@ func GetForumUsersDB(slug string, limit, since, desc string) (*models.Users, err
 	defer rows.Close()
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, ForumNotFound
 	}
 	

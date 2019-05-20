@@ -145,7 +145,6 @@ const (
 		LEFT JOIN "users" u ON u.nickname = $2
 		LEFT JOIN votes ON threads.id = votes.thread AND u.nickname = votes.nickname
 	`
-
 	getThreadVoteBySlugSQL = `
 		SELECT votes.voice, threads.id, threads.votes, u.nickname
 		FROM (SELECT 1) s
@@ -215,8 +214,6 @@ func GetThreadDB(param string) (*models.Thread, error) {
 		)
 	}
 
-	fmt.Println(thread)
-	fmt.Println(err)
 	if err != nil {
 		return nil, ThreadNotFound
 	}
@@ -306,8 +303,6 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		return nil, err
 	}
 
-	fmt.Println("psts len")
-	fmt.Println(len(*posts))	
 	if len(*posts) == 0 {
 		return posts, nil
 	}
@@ -446,11 +441,15 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	threadVotes := &pgtype.Int4{}
 	userNickname := &pgtype.Varchar{}
 
+
 	if isNumber(param) {
 		id, _ := strconv.Atoi(param)
+		// err = DB.pool.QueryRow(`SELECT id, votes FROM threads WHERE id = $1`, id).Scan(threadID, threadVotes)
 		err = DB.pool.QueryRow(getThreadVoteByIDSQL, id, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
 	} else {
+		// err = DB.pool.QueryRow(`SELECT id, votes FROM threads WHERE slug = $1`, param).Scan(threadID, threadVotes)
 		err = DB.pool.QueryRow(getThreadVoteBySlugSQL, param, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
+		fmt.Println("here0", err, param, prevVoice, threadID, threadVotes, userNickname)
 	}
 	if err != nil {
 		return nil, err
