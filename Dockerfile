@@ -27,7 +27,7 @@ RUN /etc/init.d/postgresql start &&\
     psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &&\
     createdb -O docker docker &&\
     psql -d docker -c "CREATE EXTENSION IF NOT EXISTS citext;" &&\
-    psql docker -a -f  TP_DB_RK2/database/sql/init.sql &&\
+    psql docker -a -f  database/sql/init.sql &&\
     /etc/init.d/postgresql stop
 
 USER root
@@ -50,6 +50,8 @@ ENV GOPATH /opt/go
 ENV PATH $GOROOT/bin:$GOPATH/bin:$PATH
 RUN mkdir -p "$GOPATH/bin" "$GOPATH/src"
 RUN apt-get -y install gcc musl-dev && GO11MODULE=on
+ENV GOBIN $GOPATH/bin
+RUN go get
 RUN go build .
 EXPOSE 5000
 RUN echo "./config/postgresql.conf" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
