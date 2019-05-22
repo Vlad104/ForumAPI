@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"strconv"
 	"../models"
 )
@@ -22,8 +21,6 @@ const (
 
 // /post/{id}/details Получение информации о ветке обсуждения
 func GetPostDB(id int) (*models.Post, error) {
-	fmt.Println("GetPostDB")
-
 	post := models.Post{}
 
 	rows := DB.pool.QueryRow(getPostSQL, id)
@@ -51,7 +48,6 @@ func GetPostDB(id int) (*models.Post, error) {
 
 // /post/{id}/details Получение информации о ветке обсуждения
 func GetPostFullDB(id int, related []string) (*models.PostFull, error) {
-	fmt.Println("GetPostFullDB")
 	postFull := models.PostFull{}
 	var err error
 	postFull.Post, err = GetPostDB(id)
@@ -59,7 +55,6 @@ func GetPostFullDB(id int, related []string) (*models.PostFull, error) {
 		return nil, err
 	}
 
-	fmt.Println(related)
 	for _, model := range related {
 		switch model {
 		case "thread":
@@ -67,9 +62,7 @@ func GetPostFullDB(id int, related []string) (*models.PostFull, error) {
 		case "forum":
 			postFull.Forum, err = GetForumDB(postFull.Post.Forum)
 		case "user":
-			fmt.Println("user")
 			postFull.Author, err = GetUserDB(postFull.Post.Author)
-			fmt.Println(err)
 		}
 
 		if err != nil {
@@ -82,7 +75,6 @@ func GetPostFullDB(id int, related []string) (*models.PostFull, error) {
 
 // /post/{id}/details Изменение сообщения
 func UpdatePostDB(postUpdate *models.PostUpdate, id int) (*models.Post, error) {
-	fmt.Println("UpdatePostDB")
 	post, err := GetPostDB(id)
 	if err != nil {
 		return nil, PostNotFound
