@@ -1,15 +1,21 @@
 FROM ubuntu:18.04
 MAINTAINER Vlad
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update && apt-get install -y gnupg
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git
 
 # Клонируем проект
 USER root
 RUN git clone https://github.com/Vlad104/TP_DB_RK2.git
-WORKDIR TP_DB
+WORKDIR TP_DB_RK2
 
 # Устанавливаем PostgreSQL
 RUN apt-get -y update
 RUN apt-get -y install apt-transport-https git wget
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main' >> /etc/apt/sources.list.d/pgdg.list
+RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' >> /etc/apt/sources.list.d/pgdg.list
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN apt-get -y update
 ENV PGVERSION 11
@@ -18,10 +24,10 @@ RUN apt-get -y install postgresql-$PGVERSION postgresql-contrib
 # Подключаемся к PostgreSQL и создаем БД
 USER postgres
 RUN /etc/init.d/postgresql start &&\
-    psql --command "CREATE USER postgres WITH SUPERUSER PASSWORD 'postgres';" &&\
-    createdb -O postgres postgres &&\
-    psql -d postgres -c "CREATE EXTENSION IF NOT EXISTS citext;" &&\
-    psql postgres -a -f  database/sql/init.sql &&\
+    psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &&\
+    createdb -O docker docker &&\
+    psql -d docker -c "CREATE EXTENSION IF NOT EXISTS citext;" &&\
+    psql docker -a -f  TP_DB_RK2/database/sql/init.sql &&\
     /etc/init.d/postgresql stop
 
 USER root
