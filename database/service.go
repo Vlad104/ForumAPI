@@ -12,19 +12,12 @@ const (
 		CROSS JOIN (SELECT COUNT(*) FROM "forums") as forums
 		CROSS JOIN (SELECT COUNT(*) FROM "posts") as posts
 	`
-	// getStatusSQL = `
-	// 	SELECT (
-	// 	SELECT COUNT(*) FROM forum), 
-	// 	(SELECT COUNT(*) FROM thread), 
-	// 	(SELECT COUNT(*) FROM post), 
-	// 	(SELECT COUNT(*) FROM "user")
-	// `
 	clearSQL = `
 		TRUNCATE users, forums, threads, posts, votes;
 	`
 )
 
-// /service/status Получение инфомарции о базе данных
+// /handlers/status Получение инфомарции о базе данных
 func GetStatusDB() *models.Status {
 	status := &models.Status{}
 	DB.pool.QueryRow(
@@ -38,7 +31,7 @@ func GetStatusDB() *models.Status {
 	return status
 }
 
-// /service/clear Очистка всех данных в базе
+// /handlers/clear Очистка всех данных в базе
 func ClearDB() {
 	DB.pool.Exec(clearSQL)
 }

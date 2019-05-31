@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"./database"
-	"./router"
+	"./handlers"
 )
 
 func main() {
 
 	database.DB.Connect()
 
-	router := router.CreateRouter()	
+	router := handlers.CreateRouter()	
 
 	srv := &http.Server{
 		Handler:      router,

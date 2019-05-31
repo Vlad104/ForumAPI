@@ -28,8 +28,8 @@ const (
 	updateUserSQL = `
 		UPDATE users
 		SET fullname = coalesce(nullif($2, ''), fullname),
-			email    = coalesce(nullif($3, ''), email),
-			about    = coalesce(nullif($4, ''), about)
+			email = coalesce(nullif($3, ''), email),
+			about = coalesce(nullif($4, ''), about)
 		WHERE "nickname" = $1
 		RETURNING nickname, fullname, email, about
 	`

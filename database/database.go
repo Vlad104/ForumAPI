@@ -11,19 +11,10 @@ type DataBase struct {
 
 var DB DataBase
 
-/*
-func NewDataBase() *DataBase, error {
-	var db DataBase
-	db.Connect()
-	return &db, err
-}
-*/
-
 func (db *DataBase) Connect() error {
 	runtimeParams := make(map[string] string)
 	runtimeParams["application_name"] = "dz"
 	conConfig := pgx.ConnConfig {
-		// Host: 			"localhost",
 		Host: 			"127.0.0.1",
 		Port: 			5432,
 		Database: 		"docker",

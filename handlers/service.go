@@ -1,4 +1,4 @@
-package service
+package handlers
 
 import (
 	"net/http"
@@ -15,11 +15,10 @@ func GetStatus(w http.ResponseWriter, r *http.Request) {
 	switch err {
 	case nil:
 		makeResponse(w, 200, resp)
-	default:		
+	default:
 		makeResponse(w, 500, []byte("Hello here"))
 	}
 }
-
 
 // /service/clear Очистка всех данных в базе
 func Clear(w http.ResponseWriter, r *http.Request) {

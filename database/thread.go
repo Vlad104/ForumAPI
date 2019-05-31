@@ -353,13 +353,13 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	return &insertPosts, nil
 }
 
-// НЕ ТЕСТИРОВАЛ
 // /thread/{slug_or_id}/posts Сообщения данной ветви обсуждения
 func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, error) {
 	thread, err := GetThreadDB(param)
 	if err != nil {
 		return nil, ForumNotFound
 	}
+
 	var rows *pgx.Rows
 
 	if since != "" {
@@ -432,14 +432,9 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 }
 
 // УБРАТЬ КОСТЫЛИ
-// НЕ ТЕСТИРОВАЛ
 // /thread/{slug_or_id}/vote Проголосовать за ветвь обсуждения
 func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	var err error
-	prevVoice := &pgtype.Int4{}
-	threadID := &pgtype.Int4{}
-	threadVotes := &pgtype.Int4{}
-	userNickname := &pgtype.Varchar{}
 
 	var thrID int
 	if isNumber(param) {
@@ -456,26 +451,27 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	if err != nil {
 		return nil, UserNotFound
 	}
+	prevVoice := &pgtype.Int4{}
+	threadID := &pgtype.Int4{}
+	threadVotes := &pgtype.Int4{}
+	userNickname := &pgtype.Varchar{}
 	err = DB.pool.QueryRow(getThreadVoteByIDSQL, thrID, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
-	if err != nil {
+	if err != nil || threadID.Status != pgtype.Present || userNickname.Status != pgtype.Present {
 		return nil, err
 	}
-	if threadID.Status != pgtype.Present || userNickname.Status != pgtype.Present {
-		return nil, err
-	}
-	var prevVoiceInt int32
+
+	var newVotes int32
 	if prevVoice.Status == pgtype.Present {
-		prevVoiceInt = int32(prevVoice.Int)
 		_, err = DB.pool.Exec(updateVoteSQL, threadID.Int, userNickname.String, vote.Voice)
+		newVotes = threadVotes.Int + (vote.Voice - prevVoice.Int)
 	} else {
 		_, err = DB.pool.Exec(insertVoteSQL, threadID.Int, userNickname.String, vote.Voice)
+		newVotes = threadVotes.Int + vote.Voice
 	}
-	newVotes := threadVotes.Int + (int32(vote.Voice) - prevVoiceInt)
 	if err != nil {
 		return nil, err
 	}
 	thread := &models.Thread{}
-	// slugNullable := &pgtype.Varchar{}
 	err = DB.pool.QueryRow(
 		updateThreadVotesSQL,
 		newVotes,
@@ -486,12 +482,10 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 		&thread.Forum,
 		&thread.Message,
 		&thread.Slug,
-		// slugNullable,
 		&thread.Title,
 		&thread.ID,
 		&thread.Votes,
 	)
-	// thread.Slug = slugNullable.String
 	if err != nil {
 		return nil, err
 	}

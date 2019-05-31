@@ -56,16 +56,16 @@ const (
 		LIMIT $2::TEXT::INTEGER
 	`
 	getForumUsersSienceSQl = `
-	SELECT nickname, fullname, about, email
-	FROM users
-	WHERE nickname IN (
-			SELECT author FROM threads WHERE forum = $1
-			UNION
-			SELECT author FROM posts WHERE forum = $1
-		) 
-		AND LOWER(nickname) > LOWER($2::TEXT)
-	ORDER BY nickname
-	LIMIT $3::TEXT::INTEGER
+		SELECT nickname, fullname, about, email
+		FROM users
+		WHERE nickname IN (
+				SELECT author FROM threads WHERE forum = $1
+				UNION
+				SELECT author FROM posts WHERE forum = $1
+			) 
+			AND LOWER(nickname) > LOWER($2::TEXT)
+		ORDER BY nickname
+		LIMIT $3::TEXT::INTEGER
 	`
 	getForumUsersDescSienceSQl = `
 		SELECT nickname, fullname, about, email
@@ -192,33 +192,15 @@ func GetForumThreadsDB(slug, limit, since, desc string) (*models.Threads, error)
 
 	if since != "" {
 		if desc == "true" {
-			rows, err = DB.pool.Query(
-				getForumThreadsDescSinceSQL,
-				slug,
-				since,
-				limit,
-			)
+			rows, err = DB.pool.Query(getForumThreadsDescSinceSQL, slug, since, limit)
 		} else {
-			rows, err = DB.pool.Query(
-				getForumThreadsSinceSQL,
-				slug,
-				since,
-				limit,
-			)
+			rows, err = DB.pool.Query(getForumThreadsSinceSQL, slug, since, limit)
 		}
 	} else {
 		if desc == "true" {
-			rows, err = DB.pool.Query(
-				getForumThreadsDescSQL,
-				slug,
-				limit,
-			)
+			rows, err = DB.pool.Query(getForumThreadsDescSQL, slug,	limit)
 		} else {
-			rows, err = DB.pool.Query(
-				getForumThreadsSQL,
-				slug,
-				limit,
-			)
+			rows, err = DB.pool.Query(getForumThreadsSQL, slug, limit)
 		}
 	}
 	defer rows.Close()
@@ -259,33 +241,15 @@ func GetForumUsersDB(slug string, limit, since, desc string) (*models.Users, err
 
 	if since != "" {
 		if desc == "true" {
-			rows, err = DB.pool.Query(
-				getForumUsersDescSienceSQl,
-				slug,
-				since,
-				limit,
-			)
+			rows, err = DB.pool.Query(getForumUsersDescSienceSQl, slug, since, limit)
 		} else {
-			rows, err = DB.pool.Query(
-				getForumUsersSienceSQl,
-				slug,
-				since,
-				limit,
-			)
+			rows, err = DB.pool.Query(getForumUsersSienceSQl, slug, since, limit)
 		}
 	} else {
 		if desc == "true" {
-			rows, err = DB.pool.Query(
-				getForumUsersDescSQl,
-				slug,
-				limit,
-			)
+			rows, err = DB.pool.Query(getForumUsersDescSQl, slug, limit)
 		} else {
-			rows, err = DB.pool.Query(
-				getForumUsersSQl,
-				slug,
-				limit,
-			)
+			rows, err = DB.pool.Query(getForumUsersSQl, slug, limit)
 		}
 	}
 	defer rows.Close()

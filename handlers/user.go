@@ -1,6 +1,6 @@
-package service
+package handlers
 
-import (	
+import (
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
