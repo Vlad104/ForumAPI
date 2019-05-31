@@ -17,7 +17,7 @@ const (
 	`
 )
 
-// /handlers/status Получение инфомарции о базе данных
+// /service/status Получение инфомарции о базе данных
 func GetStatusDB() *models.Status {
 	status := &models.Status{}
 	DB.pool.QueryRow(
@@ -31,7 +31,7 @@ func GetStatusDB() *models.Status {
 	return status
 }
 
-// /handlers/clear Очистка всех данных в базе
+// /service/clear Очистка всех данных в базе
 func ClearDB() {
 	DB.pool.Exec(clearSQL)
 }

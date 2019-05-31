@@ -57,4 +57,4 @@ EXPOSE 5000
 RUN echo "./config/postgresql.conf" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
 
 # Запускаем PostgreSQL и api сервер
-CMD handlers postgresql start && go run main.go
+CMD service postgresql start && go run main.go
