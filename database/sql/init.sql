@@ -1,5 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 
+DROP INDEX IF EXISTS users_nickname_idx;
+
 DROP TABLE IF EXISTS "forums" CASCADE;
 DROP TABLE IF EXISTS "posts" CASCADE;
 DROP TABLE IF EXISTS "threads" CASCADE;
@@ -49,3 +51,6 @@ CREATE TABLE IF NOT EXISTS votes (
   "voice"    INTEGER NOT NULL,
   "nickname" CITEXT   NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS users_nickname_idx
+  ON users ("nickname");

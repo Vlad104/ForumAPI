@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
@@ -80,7 +81,11 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.CreateThreadDB(posts, param)
 
-	resp, _ := swag.WriteJSON(result)
+	resp, err1 := swag.WriteJSON(result)
+	if err1 != nil {
+		fmt.Println("swagger json error")
+		fmt.Println(err1)
+	}
 	switch err {
 	case nil:
 		makeResponse(w, 201, resp)

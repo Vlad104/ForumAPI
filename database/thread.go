@@ -303,7 +303,9 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		return nil, err
 	}
 
-	if len(*posts) == 0 {
+	postsNumber := len(*posts)
+
+	if postsNumber == 0 {
 		return posts, nil
 	}
 
@@ -323,7 +325,7 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		}
 
 		// можно оптимизировать
-		if i < len(*posts) - 1 {
+		if i < postsNumber - 1 {
 			query.WriteString(fmt.Sprintf(queryBody, post.Author, created, post.Message, thread.ID, post.Parent, thread.Forum, post.Parent))
 		} else {
 			query.WriteString(fmt.Sprintf(queryBodyEnd, post.Author, created, post.Message, thread.ID, post.Parent, thread.Forum, post.Parent))
