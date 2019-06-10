@@ -324,7 +324,8 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	created := time.Now().Format("2006-01-02 15:04:05")
 	query := strings.Builder{}
 	query.WriteString("INSERT INTO posts (author, created, message, thread, parent, forum, path) VALUES ")
-	queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (select currval(pg_get_serial_sequence('posts', 'id')))),"
+	// queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (select currval(pg_get_serial_sequence('posts', 'id')))),"
+	queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d)),"
 	for i, post := range *posts {
 		err = checkPost(post, thread)
 		if err != nil {
