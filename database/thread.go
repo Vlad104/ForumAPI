@@ -296,7 +296,17 @@ func parentNotExists(parent int64) bool {
 	return false
 }
 
-// /thread/{slug_or_id}/create Создание новых постов
+func checkPost(p *models.Post, t *models.Thread) error {
+	if authorExists(p.Author) {
+		return UserNotFound
+	}
+	if parentExitsInOtherThread(p.Parent, t.ID) || parentNotExists(p.Parent) {
+		return PostParentNotFound
+	}
+	return nil
+}
+
+// thread/{slug_or_id}/create Создание новых постов
 func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	thread, err := GetThreadDB(param)
 	if err != nil {
@@ -315,33 +325,29 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	query := strings.Builder{}
 	query.WriteString("INSERT INTO posts (author, created, message, thread, parent, forum, path) VALUES ")
 	queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (select currval(pg_get_serial_sequence('posts', 'id')))),"
-	queryBodyEnd := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (select currval(pg_get_serial_sequence('posts', 'id'))))"
 	for i, post := range *posts {
-		if authorExists(post.Author) {
-			return nil, UserNotFound
-		}
-		if parentExitsInOtherThread(post.Parent, thread.ID) || parentNotExists(post.Parent) {
-			return nil, PostParentNotFound
+		err = checkPost(post, thread)
+		if err != nil {
+			return nil, err
 		}
 
-		// можно оптимизировать
-		if i < postsNumber - 1 {
-			query.WriteString(fmt.Sprintf(queryBody, post.Author, created, post.Message, thread.ID, post.Parent, thread.Forum, post.Parent))
-		} else {
-			query.WriteString(fmt.Sprintf(queryBodyEnd, post.Author, created, post.Message, thread.ID, post.Parent, thread.Forum, post.Parent))
+		temp := fmt.Sprintf(queryBody, post.Author, created, post.Message, thread.ID, post.Parent, thread.Forum, post.Parent)
+		if i == postsNumber - 1 {
+			temp = temp[:len(temp) - 1]
 		}
-
+		query.WriteString(temp)
 	}
 	query.WriteString("RETURNING author, created, forum, id, message, parent, thread")
 
-	rows, err := DB.pool.Query(query.String()) 
+	rows, err := DB.pool.Query(query.String())
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
 	insertPosts := models.Posts{}
 	for rows.Next() {
 		post := models.Post{}
-		_ = rows.Scan(
+		rows.Scan(
 			&post.Author,
 			&post.Created,
 			&post.Forum,
@@ -352,6 +358,10 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		)
 		insertPosts = append(insertPosts, &post) 
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}	
 	return &insertPosts, nil
 }
 
@@ -450,6 +460,10 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	}
 	var uNick string
 	err = DB.pool.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname).Scan(&uNick)	
+	// fmt.Println("EXPERIMENT!")
+	// rws := DB.pool.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname)
+	// err = rws.Scan(&uNick)
+	// fmt.Println(rws)
 	if err != nil {
 		return nil, UserNotFound
 	}

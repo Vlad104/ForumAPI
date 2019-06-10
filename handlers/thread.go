@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	// "fmt"
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
@@ -63,6 +63,7 @@ func UpdateThread(w http.ResponseWriter, r *http.Request) {
 
 // /thread/{slug_or_id}/create Создание новых постов
 func CreatePost(w http.ResponseWriter, r *http.Request) {
+	// fmt.Println("/thread/{slug_or_id}/create")
 	params := mux.Vars(r)
 	param := params["slug_or_id"]
 
@@ -73,19 +74,22 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	}	
 	posts := &models.Posts{}
 	err = json.Unmarshal(body, &posts)
-
+	// fmt.Println("body", body)
 	//err = forum.Validate()
 	if err != nil {
 		return
 	}
 
 	result, err := database.CreateThreadDB(posts, param)
+	// fmt.Println("result", result)
+	// fmt.Println("err", err)
 
-	resp, err1 := swag.WriteJSON(result)
-	if err1 != nil {
-		fmt.Println("swagger json error")
-		fmt.Println(err1)
-	}
+	resp, _ := swag.WriteJSON(result)
+	// fmt.Println("resp", string(resp))
+	// if err1 != nil {
+	// 	fmt.Println("swagger json error")
+	// 	fmt.Println(err1)
+	// }
 	switch err {
 	case nil:
 		makeResponse(w, 201, resp)
@@ -100,7 +104,6 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// НЕ ТЕСТИРОВАЛ
 // /thread/{slug_or_id}/posts Сообщения данной ветви обсуждения
 func GetThreadPosts(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
