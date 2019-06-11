@@ -26,7 +26,7 @@ func GetThread(w http.ResponseWriter, r *http.Request) {
 	case database.ThreadNotFound:
 		makeResponse(w, 404, []byte(makeErrorThread(param)))
 	default:		
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -57,7 +57,7 @@ func UpdateThread(w http.ResponseWriter, r *http.Request) {
 	case database.PostNotFound:
 		makeResponse(w, 404, []byte(makeErrorThread(param)))
 	default:		
-		makeResponse(w, 500, []byte("Hello2 "))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -100,7 +100,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	case database.PostParentNotFound:
 		makeResponse(w, 409, []byte(makeErrorThreadConflict()))
 	default:		
-		makeResponse(w, 500, []byte("Hello2 "))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -132,7 +132,7 @@ func GetThreadPosts(w http.ResponseWriter, r *http.Request) {
 	case database.ForumNotFound:
 		makeResponse(w, 404, []byte(makeErrorThread(param)))
 	default:		
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -162,6 +162,6 @@ func MakeThreadVote(w http.ResponseWriter, r *http.Request) {
 	case database.UserNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(param)))
 	default:		
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }

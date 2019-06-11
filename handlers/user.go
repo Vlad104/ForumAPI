@@ -38,7 +38,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		resp, _ := swag.WriteJSON(result)
 		makeResponse(w, 409, resp)
 	default:		
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -58,7 +58,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	case database.UserNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(nickname)))
 	default:		
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 

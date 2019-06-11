@@ -34,7 +34,7 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 	case database.PostNotFound:
 		makeResponse(w, 404, []byte(makeErrorPost(string(id))))
 	default:		
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -65,6 +65,6 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	case database.PostNotFound:
 		makeResponse(w, 404, []byte(makeErrorPost(string(id))))
 	default:		
-		makeResponse(w, 500, []byte("Hello2 "))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }

@@ -16,7 +16,7 @@ func GetStatus(w http.ResponseWriter, r *http.Request) {
 	case nil:
 		makeResponse(w, 200, resp)
 	default:
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 

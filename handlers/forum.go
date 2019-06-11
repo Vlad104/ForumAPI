@@ -37,7 +37,7 @@ func CreateForum(w http.ResponseWriter, r *http.Request) {
 	case database.ForumIsExist:
 		makeResponse(w, 409, resp)
 	default:		
-		makeResponse(w, 500, []byte("Hello2 "))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -55,7 +55,7 @@ func GetForum(w http.ResponseWriter, r *http.Request) {
 	case database.ForumNotFound:
 		makeResponse(w, 404, []byte(makeErrorForum(slug)))
 	default:		
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -89,7 +89,7 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 	case database.ThreadIsExist:
 		makeResponse(w, 409, resp)
 	default:		
-		makeResponse(w, 500, []byte("Hello2 "))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -120,7 +120,7 @@ func GetForumThreads(w http.ResponseWriter, r *http.Request) {
 	case database.ForumNotFound:
 		makeResponse(w, 404, []byte(makeErrorForum(slug)))
 	default:		
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
 
@@ -150,6 +150,6 @@ func GetForumUsers(w http.ResponseWriter, r *http.Request) {
 	case database.ForumNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(slug)))
 	default:		
-		makeResponse(w, 500, []byte("Hello here"))
+		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
