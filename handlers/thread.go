@@ -38,6 +38,7 @@ func UpdateThread(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}	
 	threadUpdate := &models.ThreadUpdate{}
@@ -45,6 +46,7 @@ func UpdateThread(w http.ResponseWriter, r *http.Request) {
 
 	//err = forum.Validate()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}
 
@@ -70,26 +72,20 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}	
 	posts := &models.Posts{}
 	err = json.Unmarshal(body, &posts)
-	// fmt.Println("body", body)
-	//err = forum.Validate()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}
 
 	result, err := database.CreateThreadDB(posts, param)
-	// fmt.Println("result", result)
-	// fmt.Println("err", err)
 
 	resp, _ := swag.WriteJSON(result)
-	// fmt.Println("resp", string(resp))
-	// if err1 != nil {
-	// 	fmt.Println("swagger json error")
-	// 	fmt.Println(err1)
-	// }
+
 	switch err {
 	case nil:
 		makeResponse(w, 201, resp)
@@ -136,8 +132,6 @@ func GetThreadPosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
-// НЕ ТЕСТИРОВАЛ
 // /thread/{slug_or_id}/vote Проголосовать за ветвь обсуждения
 func MakeThreadVote(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
@@ -145,6 +139,7 @@ func MakeThreadVote(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}	
 	vote := &models.Vote{}

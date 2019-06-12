@@ -325,8 +325,6 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	created := time.Now().Format(initDateTime)
 	query := strings.Builder{}
 	query.WriteString("INSERT INTO posts (author, created, message, thread, parent, forum, path) VALUES ")
-	// queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d)),"
-	// queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (SELECT CURRVAL(pg_get_serial_sequence('posts', 'id')))),"
 	queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (SELECT last_value FROM posts_id_seq)),"
 	for i, post := range *posts {
 		err = checkPost(post, thread)
@@ -335,6 +333,7 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		}
 
 		temp := fmt.Sprintf(queryBody, post.Author, created, post.Message, thread.ID, post.Parent, thread.Forum, post.Parent)
+		// удаление запятой в конце queryBody для последнего подзапроса
 		if i == postsNumber - 1 {
 			temp = temp[:len(temp) - 1]
 		}

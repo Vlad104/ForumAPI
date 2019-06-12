@@ -15,14 +15,14 @@ func CreateForum(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}	
 	forum := &models.Forum{}
 	err = json.Unmarshal(body, &forum)
 
-	// reg := strfmt.NewFormats()
-	// err = forum.Validate(reg)
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}
 
@@ -67,6 +67,7 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}	
 	thread := &models.Thread{}
@@ -75,6 +76,7 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 
 	//err = forum.Validate()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}
 

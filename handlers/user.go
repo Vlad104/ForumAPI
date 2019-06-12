@@ -18,6 +18,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}	
 	user := &models.User{}
@@ -26,6 +27,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	//err = forum.Validate()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}
 	result, err := database.CreateUserDB(user)
@@ -41,7 +43,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		makeResponse(w, 500, []byte(err.Error()))
 	}
 }
-
 
 // /user/{nickname}/profile Получение информации о пользователе
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +71,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)	
 	defer r.Body.Close()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}	
 	user := &models.User{}
@@ -78,6 +80,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	//err = forum.Validate()
 	if err != nil {
+		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}
 	err = database.UpdateUserDB(user)
