@@ -275,10 +275,9 @@ func parentExitsInOtherThread(parent int64, threadID int32) bool {
 		threadID,
 	)
 
-	if err := rows.Scan(&t); err != nil {
-		if err.Error() == "no rows in result set" {
-			return false
-		}
+	err := rows.Scan(&t)	
+	if err != nil && err.Error() == "no rows in result set" {
+		return false
 	}
 	return true
 }
@@ -288,8 +287,8 @@ func parentNotExists(parent int64) bool {
 		return false
 	}
 
-	var t int
-	err := DB.pool.QueryRow(`SELECT id FROM posts WHERE id = $1`, parent,).Scan(&t); 
+	var t int64
+	err := DB.pool.QueryRow(`SELECT id FROM posts WHERE id = $1`, parent).Scan(&t); 
 	
 	if err != nil {
 		return true
