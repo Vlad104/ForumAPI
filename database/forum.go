@@ -185,23 +185,27 @@ func CreateForumThreadDB(t *models.Thread) (*models.Thread, error) {
 	}
 }
 
+var queryForumWithSience = map[string]string {
+	"true": getForumThreadsDescSinceSQL,
+	"false": getForumThreadsSinceSQL,
+}
+
+var queryForumNoSience = map[string]string {
+	"true": getForumThreadsDescSQL,
+	"false": getForumThreadsSQL,
+}
+
 // /forum/{slug}/threads Список ветвей обсужления форума
 func GetForumThreadsDB(slug, limit, since, desc string) (*models.Threads, error) {
 	var rows *pgx.Rows
 	var err error
 
 	if since != "" {
-		if desc == "true" {
-			rows, err = DB.pool.Query(getForumThreadsDescSinceSQL, slug, since, limit)
-		} else {
-			rows, err = DB.pool.Query(getForumThreadsSinceSQL, slug, since, limit)
-		}
+		query := queryForumWithSience[desc]
+		rows, err = DB.pool.Query(query, slug, since, limit)
 	} else {
-		if desc == "true" {
-			rows, err = DB.pool.Query(getForumThreadsDescSQL, slug,	limit)
-		} else {
-			rows, err = DB.pool.Query(getForumThreadsSQL, slug, limit)
-		}
+		query := queryForumNoSience[desc]
+		rows, err = DB.pool.Query(query, slug, limit)
 	}
 	defer rows.Close()
 
@@ -234,23 +238,27 @@ func GetForumThreadsDB(slug, limit, since, desc string) (*models.Threads, error)
 	return &threads, nil
 }
 
+var queryForumUserWithSience = map[string]string {
+	"true": getForumUsersDescSienceSQl,
+	"false": getForumUsersSienceSQl,
+}
+
+var queryForumUserNoSience = map[string]string {
+	"true": getForumUsersDescSQl,
+	"false": getForumUsersSQl,
+}
+
 // /forum/{slug}/users Пользователи данного форума
 func GetForumUsersDB(slug string, limit, since, desc string) (*models.Users, error) {
 	var rows *pgx.Rows
 	var err error
-
+	
 	if since != "" {
-		if desc == "true" {
-			rows, err = DB.pool.Query(getForumUsersDescSienceSQl, slug, since, limit)
-		} else {
-			rows, err = DB.pool.Query(getForumUsersSienceSQl, slug, since, limit)
-		}
+		query := queryForumUserWithSience[desc]
+		rows, err = DB.pool.Query(query, slug, since, limit)
 	} else {
-		if desc == "true" {
-			rows, err = DB.pool.Query(getForumUsersDescSQl, slug, limit)
-		} else {
-			rows, err = DB.pool.Query(getForumUsersSQl, slug, limit)
-		}
+		query := queryForumUserNoSience[desc]
+		rows, err = DB.pool.Query(query, slug, limit)
 	}
 	defer rows.Close()
 

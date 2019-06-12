@@ -271,7 +271,9 @@ func parentExitsInOtherThread(parent int64, threadID int32) bool {
 		SELECT id
 		FROM posts
 		WHERE id = $1 AND thread IN (SELECT id FROM threads WHERE thread <> $2)`,
-		parent, threadID)
+		parent, 
+		threadID,
+	)
 
 	if err := rows.Scan(&t); err != nil {
 		if err.Error() == "no rows in result set" {
@@ -323,9 +325,9 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	created := time.Now().Format(initDateTime)
 	query := strings.Builder{}
 	query.WriteString("INSERT INTO posts (author, created, message, thread, parent, forum, path) VALUES ")
+	// queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d)),"
 	// queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (SELECT CURRVAL(pg_get_serial_sequence('posts', 'id')))),"
 	queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (SELECT last_value FROM posts_id_seq)),"
-	// queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d)),"
 	for i, post := range *posts {
 		err = checkPost(post, thread)
 		if err != nil {
@@ -367,6 +369,32 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	return &insertPosts, nil
 }
 
+var queryPostsWithSience = map[string]map[string]string {
+	"true": map[string]string {
+		"tree": getPostsSienceDescLimitTreeSQL,
+		"parent_tree": getPostsSienceDescLimitParentTreeSQL,
+		"flat": getPostsSienceDescLimitFlatSQL,
+	},
+	"false": map[string]string {
+		"tree": getPostsSienceLimitTreeSQL,
+		"parent_tree": getPostsSienceLimitParentTreeSQL,
+		"flat": getPostsSienceLimitFlatSQL,
+	},
+}
+
+var queryPostsNoSience = map[string]map[string]string {
+	"true": map[string]string {
+		"tree": getPostsDescLimitTreeSQL,
+		"parent_tree": getPostsDescLimitParentTreeSQL,
+		"flat": getPostsDescLimitFlatSQL,
+	},
+	"false": map[string]string {
+		"tree": getPostsLimitTreeSQL,
+		"parent_tree": getPostsLimitParentTreeSQL,
+		"flat": getPostsLimitFlatSQL,
+	},
+}
+
 // /thread/{slug_or_id}/posts Сообщения данной ветви обсуждения
 func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, error) {
 	thread, err := GetThreadDB(param)
@@ -377,45 +405,11 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 	var rows *pgx.Rows
 
 	if since != "" {
-		if desc == "true" {
-			switch sort {
-			case "tree":
-				rows, err = DB.pool.Query(getPostsSienceDescLimitTreeSQL, thread.ID, since, limit)
-			case "parent_tree":
-				rows, err = DB.pool.Query(getPostsSienceDescLimitParentTreeSQL, thread.ID, since, limit)
-			default:
-				rows, err = DB.pool.Query(getPostsSienceDescLimitFlatSQL, thread.ID, since, limit)
-			}
-		} else {
-			switch sort {
-			case "tree":
-				rows, err = DB.pool.Query(getPostsSienceLimitTreeSQL, thread.ID, since, limit)
-			case "parent_tree":
-				rows, err = DB.pool.Query(getPostsSienceLimitParentTreeSQL, thread.ID, since, limit)
-			default:
-				rows, err = DB.pool.Query(getPostsSienceLimitFlatSQL, thread.ID, since, limit)
-			}
-		}
+		query := queryPostsWithSience[desc][sort]
+		rows, err = DB.pool.Query(query, thread.ID, since, limit)
 	} else {
-		if desc == "true" {
-			switch sort {
-			case "tree":
-				rows, err = DB.pool.Query(getPostsDescLimitTreeSQL, thread.ID, limit)
-			case "parent_tree":
-				rows, err = DB.pool.Query(getPostsDescLimitParentTreeSQL, thread.ID, limit)
-			default:
-				rows, err = DB.pool.Query(getPostsDescLimitFlatSQL, thread.ID, limit)
-			}
-		} else {
-			switch sort {
-			case "tree":
-				rows, err = DB.pool.Query(getPostsLimitTreeSQL, thread.ID, limit)
-			case "parent_tree":
-				rows, err = DB.pool.Query(getPostsLimitParentTreeSQL, thread.ID, limit)
-			default:
-				rows, err = DB.pool.Query(getPostsLimitFlatSQL, thread.ID, limit)
-			}
-		}
+		query := queryPostsNoSience[desc][sort]
+		rows, err = DB.pool.Query(query, thread.ID, limit)
 	}
 	defer rows.Close()
 
@@ -461,11 +455,7 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 		return nil, ForumNotFound
 	}
 	var uNick string
-	err = DB.pool.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname).Scan(&uNick)	
-	// fmt.Println("EXPERIMENT!")
-	// rws := DB.pool.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname)
-	// err = rws.Scan(&uNick)
-	// fmt.Println(rws)
+	err = DB.pool.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname).Scan(&uNick)
 	if err != nil {
 		return nil, UserNotFound
 	}
