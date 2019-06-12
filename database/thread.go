@@ -319,13 +319,13 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		return posts, nil
 	}
 
-	// надо подумать
-	// пока такой костыль
-	created := time.Now().Format("2006-01-02 15:04:05")
+	initDateTime := "2006-01-02 15:04:05"
+	created := time.Now().Format(initDateTime)
 	query := strings.Builder{}
 	query.WriteString("INSERT INTO posts (author, created, message, thread, parent, forum, path) VALUES ")
-	// queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (select currval(pg_get_serial_sequence('posts', 'id')))),"
-	queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d)),"
+	// queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (SELECT CURRVAL(pg_get_serial_sequence('posts', 'id')))),"
+	queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (SELECT last_value FROM posts_id_seq)),"
+	// queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d)),"
 	for i, post := range *posts {
 		err = checkPost(post, thread)
 		if err != nil {
@@ -361,6 +361,7 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	}
 	err = rows.Err()
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}	
 	return &insertPosts, nil
