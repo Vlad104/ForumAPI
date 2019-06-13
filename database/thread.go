@@ -38,18 +38,32 @@ const (
 		LIMIT $3::TEXT::INTEGER
 	`
 	
+	// getPostsSienceDescLimitParentTreeSQL = `
+	// 	SELECT id, author, parent, message, forum, thread, created
+	// 	FROM posts
+	// 	WHERE path[1] IN (
+	// 		SELECT id
+	// 		FROM posts
+	// 		WHERE thread = $1 AND parent = 0 AND id < (SELECT path[1] FROM posts WHERE id = $2::TEXT::INTEGER)
+	// 		ORDER BY id DESC
+	// 		LIMIT $3::TEXT::INTEGER
+	// 	)
+	// 	ORDER BY path
+	// `
+
 	getPostsSienceDescLimitParentTreeSQL = `
 		SELECT id, author, parent, message, forum, thread, created
-		FROM posts
-		WHERE path[1] IN (
-			SELECT id
-			FROM posts
-			WHERE thread = $1 AND parent = 0 AND id < (SELECT path[1] FROM posts WHERE id = $2::TEXT::INTEGER)
-			ORDER BY id DESC
-			LIMIT $3::TEXT::INTEGER
+		FROM posts p
+		WHERE p.thread = $1 and p.path[1] IN (
+			SELECT p2.path[1]
+			FROM posts p2
+			WHERE p2.thread = $1 AND p2.parent = 0 and p2.path[1] < (SELECT p3.path[1] from posts p3 where p3.id = $2)
+			ORDER BY p2.path DESC
+			LIMIT $3
 		)
-		ORDER BY path	
+		ORDER BY p.path[1] DESC, p.path[2:]
 	`
+
 	getPostsSienceDescLimitFlatSQL = `
 		SELECT id, author, parent, message, forum, thread, created
 		FROM posts
@@ -71,7 +85,8 @@ const (
 			SELECT id
 			FROM posts
 			WHERE thread = $1 AND parent = 0 AND id > (SELECT path[1] FROM posts WHERE id = $2::TEXT::INTEGER)
-			ORDER BY id LIMIT $3::TEXT::INTEGER
+			ORDER BY id 
+			LIMIT $3::TEXT::INTEGER
 		)
 		ORDER BY path
 	`
@@ -320,8 +335,8 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		return posts, nil
 	}
 
-	initDateTime := "2006-01-02 15:04:05"
-	created := time.Now().Format(initDateTime)
+	dateTimeTemplate := "2006-01-02 15:04:05"
+	created := time.Now().Format(dateTimeTemplate)
 	query := strings.Builder{}
 	query.WriteString("INSERT INTO posts (author, created, message, thread, parent, forum, path) VALUES ")
 	queryBody := "('%s', '%s', '%s', %d, %d, '%s', (SELECT path FROM posts WHERE id = %d) || (SELECT last_value FROM posts_id_seq)),"
@@ -395,6 +410,9 @@ var queryPostsNoSience = map[string]map[string]string {
 
 // /thread/{slug_or_id}/posts Сообщения данной ветви обсуждения
 func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, error) {
+	// tmp, _ := strconv.Atoi(limit)
+	// tmp += 1;
+	// limit = strconv.Itoa(tmp)
 	thread, err := GetThreadDB(param)
 	if err != nil {
 		return nil, ForumNotFound
@@ -433,7 +451,7 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 		}
 		posts = append(posts, &post)
 	}
-
+	// fmt.Println(len(posts))
 	return &posts, nil
 }
 

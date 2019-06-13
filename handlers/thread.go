@@ -118,6 +118,7 @@ func GetThreadPosts(w http.ResponseWriter, r *http.Request) {
 	if desc = queryParams.Get("desc"); desc == ""{
 		desc = "false";
 	}
+	// fmt.Println("limit", limit, "since", since, "sort", sort, "desc", desc)
 	result, err := database.GetThreadPostsDB(param, limit, since, sort, desc)
 	
 	// resp, _ := result.MarshalBinary()

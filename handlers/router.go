@@ -2,7 +2,16 @@ package handlers
 
 import (
 	"github.com/gorilla/mux"
+	// "net/http"
+	// "fmt"
 )
+
+// func LogMiddleware(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		fmt.Println(r.Method, r.URL.Path)
+// 		next.ServeHTTP(w, r)
+// 	})
+// }
 
 func CreateRouter() *mux.Router {
 	r := mux.NewRouter()
@@ -23,6 +32,8 @@ func CreateRouter() *mux.Router {
 	r.HandleFunc("/api/service/clear", Clear).Methods("POST")
 	r.HandleFunc("/api/thread/{slug_or_id}/posts", GetThreadPosts).Methods("GET")
 	r.HandleFunc("/api/thread/{slug_or_id}/vote", MakeThreadVote).Methods("POST")
+
+	// r.Use(LogMiddleware)
 
 	return r
 }

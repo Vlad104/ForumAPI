@@ -7,7 +7,7 @@ import (
 
 const (
 	getPostSQL = `
-		SELECT id, author, message, forum, thread, created, "isEdited" 
+		SELECT id, author, message, forum, thread, created, "isEdited", parent
 		FROM posts 
 		WHERE id = $1
 	`
@@ -15,7 +15,7 @@ const (
 		UPDATE posts 
 		SET message = COALESCE($2, message), "isEdited" = ($2 IS NOT NULL AND $2 <> message) 
 		WHERE id = $1 
-		RETURNING author::text, created, forum, "isEdited", thread, message
+		RETURNING author::text, created, forum, "isEdited", thread, message, parent
 	`
 )
 
@@ -33,6 +33,7 @@ func GetPostDB(id int) (*models.Post, error) {
 		&post.Thread,
 		&post.Created,
 		&post.IsEdited,
+		&post.Parent,
 	)
 
 	if err != nil {
@@ -93,6 +94,7 @@ func UpdatePostDB(postUpdate *models.PostUpdate, id int) (*models.Post, error) {
 		&post.IsEdited,
 		&post.Thread,
 		&post.Message,
+		&post.Parent,
 	)
 
 	if err != nil {
