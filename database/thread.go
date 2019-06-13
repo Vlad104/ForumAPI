@@ -266,7 +266,7 @@ func authorExists(nickname string) bool {
 
 // переделать
 func parentExitsInOtherThread(parent int64, threadID int32) bool {
-	var t int
+	var t int64
 	rows := DB.pool.QueryRow(`
 		SELECT id
 		FROM posts
