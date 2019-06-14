@@ -78,17 +78,29 @@ const (
 		ORDER BY path
 		LIMIT $3::TEXT::INTEGER
 	`
+	// getPostsSienceLimitParentTreeSQL = `
+	// 	SELECT id, author, parent, message, forum, thread, created
+	// 	FROM posts
+	// 	WHERE path[1] IN (
+	// 		SELECT id
+	// 		FROM posts
+	// 		WHERE thread = $1 AND parent = 0 AND id > (SELECT path[1] FROM posts WHERE id = $2::TEXT::INTEGER)
+	// 		ORDER BY id 
+	// 		LIMIT $3::TEXT::INTEGER
+	// 	)
+	// 	ORDER BY path
+	// `
 	getPostsSienceLimitParentTreeSQL = `
 		SELECT id, author, parent, message, forum, thread, created
-		FROM posts
-		WHERE path[1] IN (
-			SELECT id
-			FROM posts
-			WHERE thread = $1 AND parent = 0 AND id > (SELECT path[1] FROM posts WHERE id = $2::TEXT::INTEGER)
-			ORDER BY id 
+		FROM posts p
+		WHERE p.thread = $1 and p.path[1] IN (
+			SELECT p2.path[1]
+			FROM posts p2
+			WHERE p2.thread = $1 AND p2.parent = 0 and p2.path[1] > (SELECT p3.path[1] from posts p3 where p3.id = $2::TEXT::INTEGER)
+			ORDER BY p2.path
 			LIMIT $3::TEXT::INTEGER
 		)
-		ORDER BY path
+		ORDER BY p.path
 	`
 	getPostsSienceLimitFlatSQL = `
 		SELECT id, author, parent, message, forum, thread, created
