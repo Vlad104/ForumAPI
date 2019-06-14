@@ -26,7 +26,6 @@ USER postgres
 RUN /etc/init.d/postgresql start &&\
     psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &&\
     createdb -O docker docker &&\
-    psql -d docker -c "CREATE EXTENSION IF NOT EXISTS citext;" &&\
     psql docker -a -f  database/sql/init.sql &&\
     /etc/init.d/postgresql stop
 
@@ -34,7 +33,13 @@ USER root
 # Настраиваем сеть
 RUN echo "local all all md5" > /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
     echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
-    echo "\nlisten_addresses = '*'\nfsync = off\nsynchronous_commit = off\nfull_page_writes = off\nautovacuum = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+    # echo "\nlisten_addresses = '*'\nfsync = off\nsynchronous_commit = off\nfull_page_writes = off\nautovacuum = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+    echo "listen_addresses='*'" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+    echo "shared_buffers=256MB" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+    echo "temp_buffers=16MB" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+    echo "work_mem=8MB" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+    echo "full_page_writes=off" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+    echo "huge_pages=try" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
     echo "unix_socket_directories = '/var/run/postgresql'" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 EXPOSE 5432
