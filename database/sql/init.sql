@@ -53,14 +53,19 @@ CREATE TABLE IF NOT EXISTS votes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_nickname ON users (nickname);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+CREATE INDEX IF NOT EXISTS idx_users_cover ON users (nickname, fullname, about, email);
 
 CREATE INDEX IF NOT EXISTS idx_forums_slug ON forums (slug);
 
 CREATE INDEX IF NOT EXISTS idx_threads_slug ON threads (slug);
 CREATE INDEX IF NOT EXISTS idx_threads_id ON threads (id);
+CREATE INDEX IF NOT EXISTS idx_threads_forum_slug ON threads (forum, slug);
 
 CREATE INDEX IF NOT EXISTS idx_posts_id ON posts (id);
 CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts (thread);
+CREATE INDEX IF NOT EXISTS idx_posts_thread_id ON posts (thread, id);
+CREATE INDEX IF NOT EXISTS idx_posts_created_id_thread ON posts (created, id, thread);
 CREATE INDEX IF NOT EXISTS idx_posts_thread_path1_id ON posts (thread, (path[1]), id);
 
-CREATE INDEX IF NOT EXISTS idx_votes_thread ON votes (thread);
+CREATE INDEX IF NOT EXISTS idx_votes_thread ON votes (thread, voice);
