@@ -52,5 +52,15 @@ CREATE TABLE IF NOT EXISTS votes (
   "nickname" CITEXT   NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS users_nickname_idx
-  ON users ("nickname");
+CREATE INDEX IF NOT EXISTS idx_users_nickname ON users (nickname);
+
+CREATE INDEX IF NOT EXISTS idx_forums_slug ON forums (slug);
+
+CREATE INDEX IF NOT EXISTS idx_threads_slug ON threads (slug);
+CREATE INDEX IF NOT EXISTS idx_threads_id ON threads (id);
+
+CREATE INDEX IF NOT EXISTS idx_posts_id ON posts (id);
+CREATE INDEX IF NOT EXISTS idx_posts_thread ON posts (thread);
+CREATE INDEX IF NOT EXISTS idx_posts_thread_path1_id ON posts (thread, (path[1]), id);
+
+CREATE INDEX IF NOT EXISTS idx_votes_thread ON votes (thread);
