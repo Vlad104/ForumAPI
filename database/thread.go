@@ -463,7 +463,11 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 		}
 		posts = append(posts, &post)
 	}
-	// fmt.Println(len(posts))
+	err = rows.Err()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}	
 	return &posts, nil
 }
 

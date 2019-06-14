@@ -26,26 +26,35 @@ USER postgres
 RUN /etc/init.d/postgresql start &&\
     psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &&\
     createdb -O docker docker &&\
+    psql -d docker -c "CREATE EXTENSION IF NOT EXISTS citext;" &&\
     psql docker -a -f  database/sql/init.sql &&\
     /etc/init.d/postgresql stop
 
 USER root
-# Настраиваем сеть
+# Настраиваем сеть и БД
 RUN echo "local all all md5" > /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
     echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
     echo "\nlisten_addresses = '*'\nfsync = off\nsynchronous_commit = off\nfull_page_writes = off\nautovacuum = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    # echo "\nlisten_addresses='*'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    # echo "\nshared_buffers=256MB\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    # echo "\ntemp_buffers=16MB\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    # # echo "work_mem=8MB" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    # echo "\nfull_page_writes=off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    # echo "\nfsync=off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    # echo "\nsynchronous_commit=off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    # echo "\nautovacuum=off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    # # echo "huge_pages=try" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
     echo "unix_socket_directories = '/var/run/postgresql'" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 EXPOSE 5432
+
+# # Настраиваем сеть и БД
+# RUN echo "local all all md5" > /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
+#     echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
+#     echo "\nlisten_addresses = '*'\nfsync = off\nsynchronous_commit = off\nfull_page_writes = off\nautovacuum = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     # echo "\nlisten_addresses='*'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     # echo "\nshared_buffers=256MB\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     # echo "\ntemp_buffers=16MB\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     # # echo "work_mem=8MB" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     # echo "\nfull_page_writes=off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     # echo "\nfsync=off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     # echo "\nsynchronous_commit=off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     # echo "\nautovacuum=off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     # # echo "huge_pages=try" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+#     echo "unix_socket_directories = '/var/run/postgresql'" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
+# VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
+# EXPOSE 5432
 
 # Устанавливаем Golang 
 ENV GOVERSION 1.11.1
@@ -62,7 +71,7 @@ ENV GOBIN $GOPATH/bin
 RUN go get
 RUN go build .
 EXPOSE 5000
-RUN echo "./config/postgresql.conf" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
+# RUN echo "./config/postgresql.conf" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
 
 # Запускаем PostgreSQL и api сервер
 CMD service postgresql start && go run main.go
