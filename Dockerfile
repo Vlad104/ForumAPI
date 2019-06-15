@@ -35,9 +35,7 @@ USER root
 # COPY database/pg_hba.conf /etc/postgresql/$PGVERSION/main/pg_hba.conf
 # COPY database/postgresql.conf /etc/postgresql/$PGVERSION/main/postgresql.conf
 RUN echo "local all all md5" > /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
-    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
-    echo -e "\nlisten_addresses='*'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nunix_socket_directories = '/var/run/postgresql'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
+    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf
 
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 EXPOSE 5432
