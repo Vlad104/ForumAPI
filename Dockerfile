@@ -35,35 +35,8 @@ USER root
 # COPY database/pg_hba.conf /etc/postgresql/$PGVERSION/main/pg_hba.conf
 # COPY database/postgresql.conf /etc/postgresql/$PGVERSION/main/postgresql.conf
 RUN echo "local all all md5" > /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
-    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf
-
-RUN echo -e "\nlisten_addresses='*'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nport = 5432\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nmax_connections = 100\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nshared_buffers = '256 MB'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nhuge_pages = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nwork_mem = '32 MB'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nmaintenance_work_mem = '256 MB'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\neffective_cache_size = '1 GB'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nwal_level = minimal\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nmax_wal_senders = 0\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nsynchronous_commit = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nfsync = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nfull_page_writes = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\ncheckpoint_timeout  = '15 min'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nmax_wal_size = '1024 MB'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nmin_wal_size = '512 MB'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nwal_compression = on\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nwal_buffers = -1\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nmax_worker_processes = 8\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nmax_parallel_maintenance_workers = 4\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nmax_parallel_workers_per_gather = 4\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nparallel_leader_participation = on\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nmax_parallel_workers = 8\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nenable_partitionwise_join = on\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nenable_partitionwise_aggregate = on\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\njit = on\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo -e "\nlogging_collector = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
+    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
+    echo -e "\nlisten_addresses='*'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
     echo -e "\nunix_socket_directories = '/var/run/postgresql'\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
 
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
