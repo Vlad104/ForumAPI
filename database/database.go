@@ -27,7 +27,7 @@ func (db *DataBase) Connect() error {
 
 	poolConfig := pgx.ConnPoolConfig{
 		ConnConfig:     conConfig,
-		MaxConnections: 50,
+		MaxConnections: 10,
 		AfterConnect:   nil,
 		AcquireTimeout: 0,
 	}

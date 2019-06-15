@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"io/ioutil"
-	"encoding/json"
 	"../database"
 	"../models"
 	"github.com/gorilla/mux"
@@ -22,7 +21,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}	
 	user := &models.User{}
-	err = json.Unmarshal(body, &user)
+	err = user.UnmarshalJSON(body)
 	user.Nickname = nickname
 
 	//err = forum.Validate()
@@ -51,10 +50,9 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.GetUserDB(nickname)
 
-	resp, _ := result.MarshalBinary()
-
 	switch err {
 	case nil:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 200, resp)
 	case database.UserNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(nickname)))
@@ -75,7 +73,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}	
 	user := &models.User{}
-	err = json.Unmarshal(body, &user)
+	err = user.UnmarshalJSON(body)
 	user.Nickname = nickname
 
 	//err = forum.Validate()
@@ -84,10 +82,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = database.UpdateUserDB(user)
-	resp, _ := user.MarshalBinary()
 
 	switch err {
 	case nil:
+		resp, _ := user.MarshalJSON()
 		makeResponse(w, 200, resp)
 	case database.UserNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(nickname)))

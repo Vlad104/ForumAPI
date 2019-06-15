@@ -10,7 +10,7 @@ import (
 func GetStatus(w http.ResponseWriter, r *http.Request) {
 
 	result := database.GetStatusDB()
-	resp, err := result.MarshalBinary()
+	resp, err := result.MarshalJSON()
 
 	switch err {
 	case nil:

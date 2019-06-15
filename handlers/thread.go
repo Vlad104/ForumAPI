@@ -18,10 +18,9 @@ func GetThread(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.GetThreadDB(param)
 
-	resp, _ := result.MarshalBinary()
-
 	switch err {
 	case nil:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 200, resp)
 	case database.ThreadNotFound:
 		makeResponse(w, 404, []byte(makeErrorThread(param)))
@@ -42,7 +41,7 @@ func UpdateThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}	
 	threadUpdate := &models.ThreadUpdate{}
-	err = json.Unmarshal(body, &threadUpdate)
+	err = threadUpdate.UnmarshalJSON(body)
 
 	//err = forum.Validate()
 	if err != nil {
@@ -52,9 +51,9 @@ func UpdateThread(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.UpdateThreadDB(threadUpdate, param)
 
-	resp, _ := result.MarshalBinary()
 	switch err {
 	case nil:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 200, resp)
 	case database.PostNotFound:
 		makeResponse(w, 404, []byte(makeErrorThread(param)))
@@ -121,7 +120,7 @@ func GetThreadPosts(w http.ResponseWriter, r *http.Request) {
 	// fmt.Println("limit", limit, "since", since, "sort", sort, "desc", desc)
 	result, err := database.GetThreadPostsDB(param, limit, since, sort, desc)
 	
-	// resp, _ := result.MarshalBinary()
+	// resp, _ := result.MarshalJSON()
 	resp, _ := swag.WriteJSON(result)
 	switch err {
 	case nil:
@@ -144,14 +143,13 @@ func MakeThreadVote(w http.ResponseWriter, r *http.Request) {
 		return
 	}	
 	vote := &models.Vote{}
-	err = json.Unmarshal(body, &vote)
+	err = vote.UnmarshalJSON(body)
 
-	result, err := database.MakeThreadVoteDB(vote, param)
-	
-	resp, _ := result.MarshalBinary()
+	result, err := database.MakeThreadVoteDB(vote, param)	
 	
 	switch err {
 	case nil:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 200, resp)
 	case database.ForumNotFound:
 		makeResponse(w, 404, []byte(makeErrorThread(param)))

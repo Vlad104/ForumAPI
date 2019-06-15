@@ -32,10 +32,9 @@ RUN /etc/init.d/postgresql start &&\
 
 USER root
 # Настраиваем сеть и БД
-RUN echo "local all all md5" > /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
-    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
-    echo "\nlisten_addresses = '*'\nfsync = off\nsynchronous_commit = off\nfull_page_writes = off\nautovacuum = off\n" >> /etc/postgresql/$PGVERSION/main/postgresql.conf &&\
-    echo "unix_socket_directories = '/var/run/postgresql'" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
+COPY database/pg_hba.conf /etc/postgresql/$PGVERSION/main/pg_hba.conf
+COPY database/postgresql.conf /etc/postgresql/$PGVERSION/main/postgresql.conf
+
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 EXPOSE 5432
 

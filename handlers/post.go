@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"net/http"
 	"io/ioutil"
-	"encoding/json"
 	"../database"
 	"../models"
 	"github.com/gorilla/mux"
@@ -27,9 +26,9 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.GetPostFullDB(id, related)
 
-	resp, _ := result.MarshalBinary()
 	switch err {
 	case nil:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 200, resp)
 	case database.PostNotFound:
 		makeResponse(w, 404, []byte(makeErrorPost(string(id))))
@@ -54,16 +53,16 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}	
 	postUpdate := &models.PostUpdate{}
-	err = json.Unmarshal(body, &postUpdate)
+	err = postUpdate.UnmarshalJSON(body)
 
 	if err != nil {
 		makeResponse(w, 500, []byte(err.Error()))
 		return
 	}
 	result, err := database.UpdatePostDB(postUpdate, id)
-	resp, _ := result.MarshalBinary()
 	switch err {
 	case nil:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 200, resp)
 	case database.PostNotFound:
 		makeResponse(w, 404, []byte(makeErrorPost(string(id))))

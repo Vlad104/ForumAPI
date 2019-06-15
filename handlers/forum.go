@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"io/ioutil"
-	"encoding/json"
 	"../database"
 	"../models"
 	"github.com/gorilla/mux"
@@ -19,7 +18,7 @@ func CreateForum(w http.ResponseWriter, r *http.Request) {
 		return
 	}	
 	forum := &models.Forum{}
-	err = json.Unmarshal(body, &forum)
+	err = forum.UnmarshalJSON(body)
 
 	if err != nil {
 		makeResponse(w, 500, []byte(err.Error()))
@@ -27,14 +26,15 @@ func CreateForum(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := database.CreateForumDB(forum)
-	resp, _ := result.MarshalBinary()
 
 	switch err {
 	case nil:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 201, resp)
 	case database.UserNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(forum.User)))
 	case database.ForumIsExist:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 409, resp)
 	default:		
 		makeResponse(w, 500, []byte(err.Error()))
@@ -48,9 +48,9 @@ func GetForum(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.GetForumDB(slug)
 
-	resp, _ := result.MarshalBinary()
 	switch err {
 	case nil:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 200, resp)
 	case database.ForumNotFound:
 		makeResponse(w, 404, []byte(makeErrorForum(slug)))
@@ -71,7 +71,7 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}	
 	thread := &models.Thread{}
-	err = json.Unmarshal(body, &thread)
+	err = thread.UnmarshalJSON(body)
 	thread.Forum = slug // иначе не знаю как
 
 	//err = forum.Validate()
@@ -82,13 +82,14 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.CreateForumThreadDB(thread)
 
-	resp, _ := result.MarshalBinary()
 	switch err {
 	case nil:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 201, resp)
 	case database.ForumOrAuthorNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(slug)))
 	case database.ThreadIsExist:
+		resp, _ := result.MarshalJSON()
 		makeResponse(w, 409, resp)
 	default:		
 		makeResponse(w, 500, []byte(err.Error()))
@@ -112,12 +113,10 @@ func GetForumThreads(w http.ResponseWriter, r *http.Request) {
 		desc = "false";
 	}
 
-	result, err := database.GetForumThreadsDB(slug, limit, since, desc)
-	
-	// resp, _ := result.MarshalBinary()
-	resp, _ := swag.WriteJSON(result)
+	result, err := database.GetForumThreadsDB(slug, limit, since, desc)	
 	switch err {
 	case nil:
+		resp, _ := swag.WriteJSON(result)
 		makeResponse(w, 200, resp)
 	case database.ForumNotFound:
 		makeResponse(w, 404, []byte(makeErrorForum(slug)))
@@ -144,10 +143,9 @@ func GetForumUsers(w http.ResponseWriter, r *http.Request) {
 
 	result, err := database.GetForumUsersDB(slug, limit, since, desc)
 	
-	// resp, _ := result.MarshalBinary()
-	resp, _ := swag.WriteJSON(result)
 	switch err {
 	case nil:
+		resp, _ := swag.WriteJSON(result)
 		makeResponse(w, 200, resp)
 	case database.ForumNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(slug)))
