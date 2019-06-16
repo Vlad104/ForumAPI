@@ -184,14 +184,13 @@ const (
 		VALUES ($1, $2, $3)
 	`
 	updateVoteSQL = `
-		UPDATE votes SET 
-		voice = $3
-		WHERE thread = $1 
-		AND nickname = $2
+		UPDATE votes 
+		SET voice = $3
+		WHERE thread = $1 AND nickname = $2
 	`
 	updateThreadVotesSQL = `
-		UPDATE threads SET
-		votes = $1
+		UPDATE threads 
+		SET	votes = $1
 		WHERE id = $2
 		RETURNING author, created, forum, "message", slug, title, id, votes
 	`
