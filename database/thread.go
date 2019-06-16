@@ -422,7 +422,7 @@ var queryPostsNoSience = map[string]map[string]string {
 
 // /thread/{slug_or_id}/posts Сообщения данной ветви обсуждения
 func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, error) {
-	fmt.Println("param", param, "limit", limit, "since", since, "sort", sort, "desc", desc)
+	// fmt.Println("param", param, "limit", limit, "since", since, "sort", sort, "desc", desc)
 	thread, err := GetThreadDB(param)
 	if err != nil {
 		return nil, ForumNotFound
@@ -463,14 +463,13 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 	}
 	err = rows.Err()
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		return nil, err
 	}
-	fmt.Println("result:", len(posts))
+	// fmt.Println("result:", len(posts))
 	return &posts, nil
 }
 
-// УБРАТЬ КОСТЫЛИ
 // /thread/{slug_or_id}/vote Проголосовать за ветвь обсуждения
 func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	var err error

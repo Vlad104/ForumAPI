@@ -33,9 +33,11 @@ RUN /etc/init.d/postgresql start &&\
 USER root
 # Настраиваем сеть и БД
 # COPY database/pg_hba.conf /etc/postgresql/$PGVERSION/main/pg_hba.conf
-# COPY database/postgresql.conf /etc/postgresql/$PGVERSION/main/postgresql.conf
 RUN echo "local all all md5" > /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
     echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf
+
+COPY database/postgresql.conf /etc/postgresql/$PGVERSION/main/conf.d
+# RUN cp database/postgresql.conf /etc/postgresql/$PGVERSION/main/conf.d
 
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 EXPOSE 5432
