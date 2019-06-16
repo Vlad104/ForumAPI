@@ -472,19 +472,25 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 // /thread/{slug_or_id}/vote Проголосовать за ветвь обсуждения
 func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	var err error
-
 	var thrID int
+
+	tx, txErr := DB.pool.Begin()
+	if txErr != nil {
+		return nil, txErr
+	}
+	defer tx.Rollback()
+
 	if isNumber(param) {
 		id, _ := strconv.Atoi(param)
-		err = DB.pool.QueryRow(`SELECT id FROM threads WHERE id = $1`, id).Scan(&thrID)
+		err = tx.QueryRow(`SELECT id FROM threads WHERE id = $1`, id).Scan(&thrID)
 	} else {
-		err = DB.pool.QueryRow(`SELECT id FROM threads WHERE slug = $1`, param).Scan(&thrID)
+		err = tx.QueryRow(`SELECT id FROM threads WHERE slug = $1`, param).Scan(&thrID)
 	}	
 	if err != nil {
 		return nil, ForumNotFound
 	}
 	var uNick string
-	err = DB.pool.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname).Scan(&uNick)
+	err = tx.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname).Scan(&uNick)
 	if err != nil {
 		return nil, UserNotFound
 	}
@@ -492,7 +498,7 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	threadID := &pgtype.Int4{}
 	threadVotes := &pgtype.Int4{}
 	userNickname := &pgtype.Varchar{}
-	err = DB.pool.QueryRow(getThreadVoteByIDSQL, thrID, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
+	err = tx.QueryRow(getThreadVoteByIDSQL, thrID, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
 	if err != nil || threadID.Status != pgtype.Present || userNickname.Status != pgtype.Present {
 		return nil, err
 	}
@@ -509,7 +515,7 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 		return nil, err
 	}
 	thread := &models.Thread{}
-	err = DB.pool.QueryRow(
+	err = tx.QueryRow(
 		updateThreadVotesSQL,
 		newVotes,
 		threadID.Int,
@@ -526,6 +532,8 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	if err != nil {
 		return nil, err
 	}
+	
+	tx.Commit()
 
 	return thread, nil
 }
