@@ -366,6 +366,12 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	}
 	query.WriteString("RETURNING author, created, forum, id, message, parent, thread")
 
+	// tx, txErr := DB.pool.Begin()
+	// if txErr != nil {
+	// 	return nil, txErr
+	// }
+	// defer tx.Rollback()
+
 	rows, err := DB.pool.Query(query.String())
 	defer rows.Close()
 	if err != nil {
@@ -389,7 +395,10 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
-	}	
+	}
+
+	// tx.Commit()
+
 	return &insertPosts, nil
 }
 
