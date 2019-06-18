@@ -38,16 +38,16 @@ RUN echo "local all all md5" > /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
 
 RUN cat database/postgresql.conf >> /etc/postgresql/$PGVERSION/main/postgresql.conf
 
-COPY database/postgresql.conf /etc/postgresql/$PGVERSION/main/conf.d
+# COPY database/postgresql.conf /etc/postgresql/$PGVERSION/main/conf.d
 # RUN cp database/postgresql.conf /etc/postgresql/$PGVERSION/main/conf.d
-RUN cat /etc/postgresql/$PGVERSION/main/postgresql.conf
+# RUN cat /etc/postgresql/$PGVERSION/main/postgresql.conf
 
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 EXPOSE 5432
 
 
 # Устанавливаем Golang 
-ENV GOVERSION 1.11.1
+ENV GOVERSION 1.11.4
 USER root
 RUN wget https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz
 RUN tar -C /usr/local -xzf go$GOVERSION.linux-amd64.tar.gz && \
