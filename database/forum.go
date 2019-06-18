@@ -66,7 +66,7 @@ const (
 		FROM users
 		WHERE nickname IN (
 				SELECT author FROM threads WHERE forum = $1
-				UNION
+				UNION ALL
 				SELECT author FROM posts WHERE forum = $1
 			) 
 			AND LOWER(nickname) > LOWER($2::TEXT)
@@ -78,7 +78,7 @@ const (
 		FROM users
 		WHERE nickname IN (
 				SELECT author FROM threads WHERE forum = $1
-				UNION
+				UNION ALL
 				SELECT author FROM posts WHERE forum = $1
 			) 
 			AND LOWER(nickname) < LOWER($2::TEXT)
@@ -90,7 +90,7 @@ const (
 		FROM users
 		WHERE nickname IN (
 				SELECT author FROM threads WHERE forum = $1
-				UNION
+				UNION ALL
 				SELECT author FROM posts WHERE forum = $1
 			)
 		ORDER BY nickname
@@ -101,7 +101,7 @@ const (
 		FROM users
 		WHERE nickname IN (
 				SELECT author FROM threads WHERE forum = $1
-				UNION
+				UNION ALL
 				SELECT author FROM posts WHERE forum = $1
 			)
 		ORDER BY nickname DESC
