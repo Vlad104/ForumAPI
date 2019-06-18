@@ -2,7 +2,7 @@ package database
 
 import (
 	"strconv"
-	"../models"
+	"github.com/Vlad104/TP_DB_RK2/models"
 )
 
 const (

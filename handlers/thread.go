@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
-	"../database"
-	"../models"
+	"github.com/Vlad104/TP_DB_RK2/database"
+	"github.com/Vlad104/TP_DB_RK2/models"
 	"github.com/gorilla/mux"
 	"github.com/go-openapi/swag"
 )

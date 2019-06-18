@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 	"strings"
-	"../models"
+	"github.com/Vlad104/TP_DB_RK2/models"
 	"github.com/jackc/pgx"
 	// "github.com/jackc/pgx/pgtype"
 )

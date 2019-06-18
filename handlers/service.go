@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"../database"
+	"github.com/Vlad104/TP_DB_RK2/database"
 )
 
 

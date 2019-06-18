@@ -2,3 +2,5 @@
 *.out
 *.gz
 report.html
+.vscode
+go.sum

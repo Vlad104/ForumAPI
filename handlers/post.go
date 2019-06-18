@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"net/http"
 	"io/ioutil"
-	"../database"
-	"../models"
+	"github.com/Vlad104/TP_DB_RK2/database"
+	"github.com/Vlad104/TP_DB_RK2/models"
 	"github.com/gorilla/mux"
 )
 
