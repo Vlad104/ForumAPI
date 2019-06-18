@@ -3,13 +3,25 @@ package handlers
 import (
 	"github.com/gorilla/mux"
 	// "net/http"
-	// "fmt"
+	// "log"
+	// "time"
 )
 
 // func LogMiddleware(next http.Handler) http.Handler {
 // 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		fmt.Println(r.Method, r.URL.Path)
+// 		// fmt.Println(r.Method, r.URL.Path)
+// 		t1 := time.Now().Second()
 // 		next.ServeHTTP(w, r)
+// 		t2 := time.Now().Second()
+// 		dt := t2 - t1
+// 		if dt >= 2 {
+// 			log.Println(r.Method, r.URL.Path, 
+// 			"limit", r.URL.Query().Get("limit"), 
+// 			"since", r.URL.Query().Get("since"),
+// 			"desc", r.URL.Query().Get("desc"),
+// 			dt,
+// 		)
+// 		}
 // 	})
 // }
 

@@ -5,12 +5,19 @@ import (
 )
 
 const (
+	// getStatusSQL = `
+	// 	SELECT 
+	// 	(SELECT COUNT(*) FROM users) AS users,
+	// 	(SELECT COUNT(*) FROM forums) AS forums,
+	// 	(SELECT COALESCE(SUM(posts), 0) FROM forums WHERE posts > 0) AS posts,
+	// 	(SELECT COALESCE(SUM(threads), 0) FROM forums WHERE threads > 0) AS threads
+	// `
 	getStatusSQL = `
-		SELECT *
-		FROM (SELECT COUNT(*) FROM "users") as "users"
-		CROSS JOIN (SELECT COUNT(*) FROM "threads") as threads
-		CROSS JOIN (SELECT COUNT(*) FROM "forums") as forums
-		CROSS JOIN (SELECT COUNT(*) FROM "posts") as posts
+		SELECT 
+		(SELECT COUNT(*) FROM users) AS users,
+		(SELECT COUNT(*) FROM forums) AS forums,
+		(SELECT COUNT(*) FROM posts) AS posts,
+		(SELECT COALESCE(SUM(threads), 0) FROM forums WHERE threads > 0) AS threads
 	`
 	clearSQL = `
 		TRUNCATE users, forums, threads, posts, votes;
@@ -24,9 +31,9 @@ func GetStatusDB() *models.Status {
 		getStatusSQL,
 	).Scan(
 		&status.User,
-		&status.Thread,
 		&status.Forum,
 		&status.Post,
+		&status.Thread,
 	)
 	return status
 }

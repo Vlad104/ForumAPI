@@ -7,26 +7,32 @@ import (
 
 const (
 	createForumSQL = `
-		INSERT
-		INTO forums (slug, title, "user")
+		INSERT INTO forums (slug, title, "user")
 		VALUES ($1, $2, (
 			SELECT nickname FROM users WHERE nickname = $3
 		)) 
 		RETURNING "user"
 	`
+	// getForumSQL = `
+	// 	SELECT slug, title, "user", 
+	// 		(SELECT COUNT(*) FROM posts WHERE forum = $1), 
+	// 		(SELECT COUNT(*) FROM threads WHERE forum = $1)
+	// 	FROM forums
+	// 	WHERE slug = $1
+	// `
+
 	getForumSQL = `
-		SELECT slug, title, "user", 
-			(SELECT COUNT(*) FROM posts WHERE forum = $1), 
-			(SELECT COUNT(*) FROM threads WHERE forum = $1)
+		SELECT slug, title, "user", posts, threads
 		FROM forums
 		WHERE slug = $1
 	`
+
 	createForumThreadSQL = `
-		INSERT
-		INTO threads (author, created, message, title, slug, forum)
+		INSERT INTO threads (author, created, message, title, slug, forum)
 		VALUES ($1, $2, $3, $4, $5, (SELECT slug FROM forums WHERE slug = $6)) 
 		RETURNING author, created, forum, id, message, title
 	`
+	
 	getForumThreadsSinceSQL = `
 		SELECT author, created, forum, id, message, slug, title, votes
 		FROM threads

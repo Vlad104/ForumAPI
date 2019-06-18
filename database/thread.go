@@ -7,7 +7,7 @@ import (
 	"strings"
 	"../models"
 	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/pgtype"
+	// "github.com/jackc/pgx/pgtype"
 )
 
 const (
@@ -397,6 +397,8 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		return nil, err
 	}
 
+	DB.pool.Exec(`UPDATE forums SET posts = posts + $1 WHERE slug = $2`, len(insertPosts), thread.Forum)
+
 	// tx.Commit()
 
 	return &insertPosts, nil
@@ -481,7 +483,6 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 // /thread/{slug_or_id}/vote Проголосовать за ветвь обсуждения
 func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	var err error
-	var thrID int
 
 	tx, txErr := DB.pool.Begin()
 	if txErr != nil {
@@ -489,60 +490,55 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 	}
 	defer tx.Rollback()
 
+	var thread models.Thread
 	if isNumber(param) {
 		id, _ := strconv.Atoi(param)
-		err = tx.QueryRow(`SELECT id FROM threads WHERE id = $1`, id).Scan(&thrID)
+		err = tx.QueryRow(`SELECT id, author, created, forum, message, slug, title, votes FROM threads WHERE id = $1`, id).Scan(
+			&thread.ID,
+			&thread.Author,
+			&thread.Created,
+			&thread.Forum,
+			&thread.Message,
+			&thread.Slug,
+			&thread.Title,
+			&thread.Votes,
+		)
 	} else {
-		err = tx.QueryRow(`SELECT id FROM threads WHERE slug = $1`, param).Scan(&thrID)
+		err = tx.QueryRow(`SELECT id, author, created, forum, message, slug, title, votes FROM threads WHERE slug = $1`, param).Scan(
+			&thread.ID,
+			&thread.Author,
+			&thread.Created,
+			&thread.Forum,
+			&thread.Message,
+			&thread.Slug,
+			&thread.Title,
+			&thread.Votes,
+		)
 	}	
 	if err != nil {
 		return nil, ForumNotFound
 	}
-	var uNick string
-	err = tx.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname).Scan(&uNick)
+
+	var nick string
+	err = tx.QueryRow(`SELECT nickname FROM users WHERE nickname = $1`, vote.Nickname).Scan(&nick)
 	if err != nil {
 		return nil, UserNotFound
 	}
-	prevVoice := &pgtype.Int4{}
-	threadID := &pgtype.Int4{}
-	threadVotes := &pgtype.Int4{}
-	userNickname := &pgtype.Varchar{}
-	err = tx.QueryRow(getThreadVoteByIDSQL, thrID, vote.Nickname).Scan(prevVoice, threadID, threadVotes, userNickname)
-	if err != nil || threadID.Status != pgtype.Present || userNickname.Status != pgtype.Present {
-		return nil, err
+
+	rows, err := tx.Exec(`UPDATE votes SET voice = $1 WHERE thread = $2 AND nickname = $3;`, vote.Voice, thread.ID, vote.Nickname)
+	if rows.RowsAffected() == 0 {
+		_, err := tx.Exec(`INSERT INTO votes (nickname, thread, voice) VALUES ($1, $2, $3);`, vote.Nickname, thread.ID, vote.Voice)
+		if err != nil {
+			return nil, UserNotFound
+		}
 	}
 
-	var newVotes int32
-	if prevVoice.Status == pgtype.Present {
-		_, err = DB.pool.Exec(updateVoteSQL, threadID.Int, userNickname.String, vote.Voice)
-		newVotes = threadVotes.Int + (vote.Voice - prevVoice.Int)
-	} else {
-		_, err = DB.pool.Exec(insertVoteSQL, threadID.Int, userNickname.String, vote.Voice)
-		newVotes = threadVotes.Int + vote.Voice
-	}
-	if err != nil {
-		return nil, err
-	}
-	thread := &models.Thread{}
-	err = tx.QueryRow(
-		updateThreadVotesSQL,
-		newVotes,
-		threadID.Int,
-	).Scan(
-		&thread.Author,
-		&thread.Created,
-		&thread.Forum,
-		&thread.Message,
-		&thread.Slug,
-		&thread.Title,
-		&thread.ID,
-		&thread.Votes,
-	)
+	err = tx.QueryRow(`SELECT votes FROM threads WHERE id = $1`, thread.ID).Scan(&thread.Votes)
 	if err != nil {
 		return nil, err
 	}
 	
 	tx.Commit()
 
-	return thread, nil
+	return &thread, nil
 }
