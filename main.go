@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"./database"
-	"./handlers"
+	"github.com/Vlad104/TP_DB_RK2/database"
+	"github.com/Vlad104/TP_DB_RK2/handlers"
 )
 
 func main() {
