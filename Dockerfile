@@ -30,6 +30,8 @@ RUN /etc/init.d/postgresql start &&\
     psql docker -a -f  database/sql/init.sql &&\
     /etc/init.d/postgresql stop
 
+RUN cat database/sql/init.sql
+
 USER root
 # Настраиваем сеть и БД
 # COPY database/pg_hba.conf /etc/postgresql/$PGVERSION/main/pg_hba.conf
@@ -59,9 +61,9 @@ RUN mkdir -p "$GOPATH/bin" "$GOPATH/src"
 RUN apt-get -y install gcc musl-dev && GO11MODULE=on
 ENV GOBIN $GOPATH/bin
 RUN go get
-RUN go build .
+RUN go build main.go
 EXPOSE 5000
 # RUN echo "./config/postgresql.conf" >> /etc/postgresql/$PGVERSION/main/postgresql.conf
 
 # Запускаем PostgreSQL и api сервер
-CMD service postgresql start && go run main.go
+CMD service postgresql start && ./main
