@@ -13,14 +13,7 @@ const (
 		)) 
 		RETURNING "user"
 	`
-	// getForumSQL = `
-	// 	SELECT slug, title, "user", 
-	// 		(SELECT COUNT(*) FROM posts WHERE forum = $1), 
-	// 		(SELECT COUNT(*) FROM threads WHERE forum = $1)
-	// 	FROM forums
-	// 	WHERE slug = $1
-	// `
-
+	
 	getForumSQL = `
 		SELECT slug, title, "user", posts, threads
 		FROM forums
@@ -65,9 +58,7 @@ const (
 		SELECT nickname, fullname, about, email
 		FROM users
 		WHERE nickname IN (
-				SELECT author FROM threads WHERE forum = $1
-				UNION ALL
-				SELECT author FROM posts WHERE forum = $1
+				SELECT forum_user FROM forum_users WHERE forum = $1
 			) 
 			AND LOWER(nickname) > LOWER($2::TEXT)
 		ORDER BY nickname
@@ -77,9 +68,7 @@ const (
 		SELECT nickname, fullname, about, email
 		FROM users
 		WHERE nickname IN (
-				SELECT author FROM threads WHERE forum = $1
-				UNION ALL
-				SELECT author FROM posts WHERE forum = $1
+				SELECT forum_user FROM forum_users WHERE forum = $1
 			) 
 			AND LOWER(nickname) < LOWER($2::TEXT)
 		ORDER BY nickname DESC
@@ -89,9 +78,7 @@ const (
 		SELECT nickname, fullname, about, email
 		FROM users
 		WHERE nickname IN (
-				SELECT author FROM threads WHERE forum = $1
-				UNION ALL
-				SELECT author FROM posts WHERE forum = $1
+				SELECT forum_user FROM forum_users WHERE forum = $1
 			)
 		ORDER BY nickname
 		LIMIT $2::TEXT::INTEGER
@@ -100,9 +87,7 @@ const (
 		SELECT nickname, fullname, about, email
 		FROM users
 		WHERE nickname IN (
-				SELECT author FROM threads WHERE forum = $1
-				UNION ALL
-				SELECT author FROM posts WHERE forum = $1
+				SELECT forum_user FROM forum_users WHERE forum = $1
 			)
 		ORDER BY nickname DESC
 		LIMIT $2::TEXT::INTEGER

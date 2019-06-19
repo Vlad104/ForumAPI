@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS "posts" CASCADE;
 DROP TABLE IF EXISTS "threads" CASCADE;
 DROP TABLE IF EXISTS "users" CASCADE;
 DROP TABLE IF EXISTS "votes" CASCADE;
+DROP TABLE IF EXISTS "forum_users" CASCADE;
 
 CREATE TABLE IF NOT EXISTS users (
   "nickname" CITEXT UNIQUE PRIMARY KEY,
@@ -50,11 +51,12 @@ CREATE TABLE IF NOT EXISTS votes (
   "nickname" CITEXT   NOT NULL
 );
 
--- CREATE TABLE forum_users
--- (
---   "forum_user"  CITEXT COLLATE ucs_basic NOT NULL,
---   "forum"       CITEXT NOT NULL
--- );
+
+CREATE TABLE forum_users
+(
+  "forum_user"  CITEXT COLLATE ucs_basic NOT NULL,
+  "forum"       CITEXT NOT NULL
+);
 
 
 DROP INDEX IF EXISTS idx_users_nickname;
@@ -73,8 +75,12 @@ DROP INDEX IF EXISTS idx_posts_path;
 DROP INDEX IF EXISTS idx_posts_thread_id_created;
 DROP INDEX IF EXISTS idx_votes_thread_nickname;
 
-CREATE INDEX IF NOT EXISTS idx_users_nickname ON users (nickname);
-CREATE INDEX IF NOT EXISTS idx_users_email_nickname ON users (email, nickname);
+DROP INDEX IF EXISTS idx_fu_user;
+DROP INDEX IF EXISTS idx_fu_forum;
+
+-- CREATE INDEX IF NOT EXISTS idx_fu_user ON forum_users (forum_user);
+CREATE INDEX IF NOT EXISTS idx_fu_user ON forum_users (forum, forum_user);
+CREATE INDEX IF NOT EXISTS idx_fu_forum ON forum_users (forum);
 
 CREATE INDEX IF NOT EXISTS idx_forums_slug ON forums (slug);
 
@@ -133,3 +139,12 @@ DROP trigger if exists thread_insert ON threads;
 CREATE TRIGGER thread_insert AFTER INSERT ON threads
   FOR EACH ROW EXECUTE PROCEDURE thread_insert();
 
+DROP FUNCTION IF EXISTS add_forum_user();
+CREATE OR REPLACE FUNCTION add_forum_user() RETURNS TRIGGER AS $new_thread_author$
+BEGIN
+  INSERT INTO forum_users VALUES (NEW.author, NEW.forum) ON CONFLICT DO NOTHING;
+  RETURN NULL;
+END;
+$new_thread_author$
+LANGUAGE plpgsql;
+CREATE TRIGGER new_thread_author AFTER INSERT ON threads FOR EACH ROW EXECUTE PROCEDURE add_forum_user();

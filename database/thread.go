@@ -366,13 +366,13 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	}
 	query.WriteString("RETURNING author, created, forum, id, message, parent, thread")
 
-	// tx, txErr := DB.pool.Begin()
-	// if txErr != nil {
-	// 	return nil, txErr
-	// }
-	// defer tx.Rollback()
+	tx, txErr := DB.pool.Begin()
+	if txErr != nil {
+		return nil, txErr
+	}
+	defer tx.Rollback()
 
-	rows, err := DB.pool.Query(query.String())
+	rows, err := tx.Query(query.String())
 	defer rows.Close()
 	if err != nil {
 		return nil, err
@@ -397,9 +397,11 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		return nil, err
 	}
 
-	DB.pool.Exec(`UPDATE forums SET posts = posts + $1 WHERE slug = $2`, len(insertPosts), thread.Forum)
-
-	// tx.Commit()
+	tx.Exec(`UPDATE forums SET posts = posts + $1 WHERE slug = $2`, len(insertPosts), thread.Forum)
+	for _, p := range insertPosts {
+		tx.Exec(`INSERT INTO forum_users VALUES ($1, $2) ON CONFLICT DO NOTHING`, p.Author, p.Forum)
+	}
+	tx.Commit()
 
 	return &insertPosts, nil
 }
