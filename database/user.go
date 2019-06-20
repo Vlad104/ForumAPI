@@ -13,7 +13,7 @@ const (
 	getUserByNicknameOrEmailSQL = `
 		SELECT "nickname", "fullname", "email", "about"
 		FROM users
-		WHERE "email" = $1 OR "nickname" = $2
+		WHERE "nickname" = $1 OR "email" = $2
 	`
 	getUserByNickname = `
 		SELECT "nickname", "fullname", "email", "about"
@@ -50,7 +50,7 @@ func CreateUserDB(u *models.User) (*models.Users, error)  {
 
 	if rows.RowsAffected() == 0 { // пользователь уже есть
 		users := models.Users{}
-		queryRows, err := DB.pool.Query(getUserByNicknameOrEmailSQL, &u.Email, &u.Nickname)
+		queryRows, err := DB.pool.Query(getUserByNicknameOrEmailSQL, &u.Nickname, &u.Email)
 		defer queryRows.Close()
 
 		if err != nil {

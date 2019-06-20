@@ -60,7 +60,7 @@ CREATE TABLE forum_users
 
 
 DROP INDEX IF EXISTS idx_users_nickname;
-DROP INDEX IF EXISTS idx_users_email_nickname;
+DROP INDEX IF EXISTS idx_users_nickname_email;
 DROP INDEX IF EXISTS idx_forums_slug;
 DROP INDEX IF EXISTS idx_threads_id;
 DROP INDEX IF EXISTS idx_threads_slug;
@@ -71,7 +71,10 @@ DROP INDEX IF EXISTS idx_posts_thread_id0;
 DROP INDEX IF EXISTS idx_posts_thread_path1_id;
 DROP INDEX IF EXISTS idx_posts_thread_path_parent;
 DROP INDEX IF EXISTS idx_posts_thread;
-DROP INDEX IF EXISTS idx_posts_path;
+DROP INDEX IF EXISTS idx_posts_path_AA;
+DROP INDEX IF EXISTS idx_posts_path_AD;
+DROP INDEX IF EXISTS idx_posts_path_DA;
+DROP INDEX IF EXISTS idx_posts_path_DD;
 DROP INDEX IF EXISTS idx_posts_path_desc;
 DROP INDEX IF EXISTS idx_posts_paths;
 DROP INDEX IF EXISTS idx_posts_thread_path;
@@ -84,20 +87,18 @@ DROP INDEX IF EXISTS idx_fu_forum;
 CREATE INDEX IF NOT EXISTS idx_fu_user ON forum_users (forum, forum_user);
 CREATE INDEX IF NOT EXISTS idx_fu_forum ON forum_users (forum);
 
+CREATE INDEX IF NOT EXISTS idx_users_nickname ON users (nickname);
+
 CREATE INDEX IF NOT EXISTS idx_forums_slug ON forums (slug);
 
 CREATE INDEX IF NOT EXISTS idx_threads_id ON threads (id);
 CREATE INDEX IF NOT EXISTS idx_threads_slug ON threads (slug);
 CREATE INDEX IF NOT EXISTS idx_threads_forum ON threads (forum);
-CREATE INDEX IF NOT EXISTS idx_threads_created_forum ON threads (created, forum);
+-- CREATE INDEX IF NOT EXISTS idx_threads_created_forum ON threads (created, forum);
 
 CREATE INDEX IF NOT EXISTS idx_posts_forum ON posts (forum);
 CREATE INDEX IF NOT EXISTS idx_posts_id ON posts (id);
--- CREATE INDEX IF NOT EXISTS idx_posts_path ON posts (parent);
--- CREATE INDEX IF NOT EXISTS idx_posts_path ON posts (path);
--- CREATE INDEX IF NOT EXISTS idx_posts_path_desc ON posts (path DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_thread_path ON posts (thread, path);
-CREATE INDEX IF NOT EXISTS idx_posts_paths ON posts ((path[1]), path);
 CREATE INDEX IF NOT EXISTS idx_posts_thread_id ON posts (thread, id);
 CREATE INDEX IF NOT EXISTS idx_posts_thread_id0 ON posts (thread, id) WHERE parent = 0;
 CREATE INDEX IF NOT EXISTS idx_posts_thread_id_created ON posts (id, created, thread);
