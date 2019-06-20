@@ -93,8 +93,9 @@ CREATE INDEX IF NOT EXISTS idx_threads_created_forum ON threads (created, forum)
 
 CREATE INDEX IF NOT EXISTS idx_posts_forum ON posts (forum);
 CREATE INDEX IF NOT EXISTS idx_posts_id ON posts (id);
-CREATE INDEX IF NOT EXISTS idx_posts_path ON posts (path);
-CREATE INDEX IF NOT EXISTS idx_posts_path_desc ON posts (path DESC);
+-- CREATE INDEX IF NOT EXISTS idx_posts_path ON posts (parent);
+-- CREATE INDEX IF NOT EXISTS idx_posts_path ON posts (path);
+-- CREATE INDEX IF NOT EXISTS idx_posts_path_desc ON posts (path DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_thread_path ON posts (thread, path);
 CREATE INDEX IF NOT EXISTS idx_posts_paths ON posts ((path[1]), path);
 CREATE INDEX IF NOT EXISTS idx_posts_thread_id ON posts (thread, id);
