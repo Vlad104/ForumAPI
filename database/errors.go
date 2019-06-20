@@ -10,6 +10,7 @@ const (
 	pgxErrNotNull		= "23502"
 	pgxErrForeignKey 	= "23503"
 	pgxErrUnique 		= "23505"
+	noRowsInResult 		= "no rows in result set"
 )
 
 // Ошибки запросов

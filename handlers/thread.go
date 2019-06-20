@@ -108,9 +108,10 @@ func GetThreadPosts(w http.ResponseWriter, r *http.Request) {
 	if limit = queryParams.Get("limit"); limit == "" {
 		limit = "1";
 	}
-	if since = queryParams.Get("since"); since == "" {
-		since = "";
-	}
+	since = queryParams.Get("since"); 
+	// if since = queryParams.Get("since"); since == "" {
+	// 	since = "";
+	// }
 	if sort = queryParams.Get("sort"); sort == ""{
 		sort = "flat";
 	}

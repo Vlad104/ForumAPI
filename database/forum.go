@@ -240,7 +240,7 @@ var queryForumUserNoSience = map[string]string {
 }
 
 // /forum/{slug}/users Пользователи данного форума
-func GetForumUsersDB(slug string, limit, since, desc string) (*models.Users, error) {
+func GetForumUsersDB(slug, limit, since, desc string) (*models.Users, error) {
 	var rows *pgx.Rows
 	var err error
 	

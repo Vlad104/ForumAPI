@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 # Клонируем проект
 USER root
-RUN git clone https://github.com/Vlad104/TP_DB_RK2.git #disable cache for one step
+RUN git clone https://github.com/Vlad104/TP_DB_RK2.git # disable cache for one step
 WORKDIR TP_DB_RK2
 
 # Устанавливаем PostgreSQL
@@ -34,7 +34,6 @@ RUN cat database/sql/init.sql
 
 USER root
 # Настраиваем сеть и БД
-# COPY database/pg_hba.conf /etc/postgresql/$PGVERSION/main/pg_hba.conf
 RUN echo "local all all md5" > /etc/postgresql/$PGVERSION/main/pg_hba.conf &&\
     echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/$PGVERSION/main/pg_hba.conf
 RUN cat database/postgresql.conf >> /etc/postgresql/$PGVERSION/main/postgresql.conf

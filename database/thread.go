@@ -37,19 +37,6 @@ const (
 		ORDER BY path DESC
 		LIMIT $3::TEXT::INTEGER
 	`
-	
-	// getPostsSienceDescLimitParentTreeSQL = `
-	// 	SELECT id, author, parent, message, forum, thread, created
-	// 	FROM posts
-	// 	WHERE path[1] IN (
-	// 		SELECT id
-	// 		FROM posts
-	// 		WHERE thread = $1 AND parent = 0 AND id < (SELECT path[1] FROM posts WHERE id = $2::TEXT::INTEGER)
-	// 		ORDER BY id DESC
-	// 		LIMIT $3::TEXT::INTEGER
-	// 	)
-	// 	ORDER BY path
-	// `
 
 	getPostsSienceDescLimitParentTreeSQL = `
 		SELECT id, author, parent, message, forum, thread, created
@@ -71,6 +58,7 @@ const (
 		ORDER BY id DESC
 		LIMIT $3::TEXT::INTEGER
 	`
+	
 	getPostsSienceLimitTreeSQL = `
 		SELECT id, author, parent, message, forum, thread, created
 		FROM posts
@@ -78,18 +66,7 @@ const (
 		ORDER BY path
 		LIMIT $3::TEXT::INTEGER
 	`
-	// getPostsSienceLimitParentTreeSQL = `
-	// 	SELECT id, author, parent, message, forum, thread, created
-	// 	FROM posts
-	// 	WHERE path[1] IN (
-	// 		SELECT id
-	// 		FROM posts
-	// 		WHERE thread = $1 AND parent = 0 AND id > (SELECT path[1] FROM posts WHERE id = $2::TEXT::INTEGER)
-	// 		ORDER BY id 
-	// 		LIMIT $3::TEXT::INTEGER
-	// 	)
-	// 	ORDER BY path
-	// `
+
 	getPostsSienceLimitParentTreeSQL = `
 		SELECT id, author, parent, message, forum, thread, created
 		FROM posts p
@@ -207,9 +184,7 @@ func GetThreadDB(param string) (*models.Thread, error) {
 	var err error
 	var thread models.Thread
 
-	query := getThreadSlugSQL
 	if isNumber(param) {
-		// возможно можно сократить
 		id, _ := strconv.Atoi(param)
 		err = DB.pool.QueryRow(
 			getThreadIdSQL,
@@ -226,7 +201,7 @@ func GetThreadDB(param string) (*models.Thread, error) {
 		)
 	} else {
 		err = DB.pool.QueryRow(
-			query,
+			getThreadSlugSQL,
 			param,
 		).Scan(
 			&thread.ID,
@@ -280,29 +255,33 @@ func UpdateThreadDB(thread *models.ThreadUpdate, param string) (*models.Thread, 
 
 func authorExists(nickname string) bool {
 	var user models.User
-	rows :=  DB.pool.QueryRow(getUserByNickname, nickname)
+	err :=  DB.pool.QueryRow(
+		getUserByNickname,
+		nickname,
+	).Scan(
+		&user.Nickname,
+		&user.Fullname,
+		&user.About,
+		&user.Email,
+	)
 
-	if err := rows.Scan(&user.Nickname, &user.Fullname, &user.About, &user.Email); err != nil {
-		if err.Error() == "no rows in result set" {
-			return true
-		}
+	if err != nil && err.Error() == noRowsInResult {
+		return true
 	}
 	return false
 }
 
-// переделать
+const postID = `
+	SELECT id
+	FROM posts
+	WHERE id = $1 AND thread IN (SELECT id FROM threads WHERE thread <> $2)
+`
+
 func parentExitsInOtherThread(parent int64, threadID int32) bool {
 	var t int64
-	rows := DB.pool.QueryRow(`
-		SELECT id
-		FROM posts
-		WHERE id = $1 AND thread IN (SELECT id FROM threads WHERE thread <> $2)`,
-		parent, 
-		threadID,
-	)
+	err := DB.pool.QueryRow(postID, parent, threadID).Scan(&t)
 
-	err := rows.Scan(&t)	
-	if err != nil && err.Error() == "no rows in result set" {
+	if err != nil && err.Error() == noRowsInResult {
 		return false
 	}
 	return true
@@ -319,7 +298,6 @@ func parentNotExists(parent int64) bool {
 	if err != nil {
 		return true
 	}
-
 	return false
 }
 
@@ -341,7 +319,6 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 	}
 
 	postsNumber := len(*posts)
-
 	if postsNumber == 0 {
 		return posts, nil
 	}
@@ -397,10 +374,12 @@ func CreateThreadDB(posts *models.Posts, param string) (*models.Posts, error) {
 		return nil, err
 	}
 
+	// по хорошему это впихнуть в хранимые процедуры, но нормальные ребята предпочитают костылить
 	tx.Exec(`UPDATE forums SET posts = posts + $1 WHERE slug = $2`, len(insertPosts), thread.Forum)
 	for _, p := range insertPosts {
 		tx.Exec(`INSERT INTO forum_users VALUES ($1, $2) ON CONFLICT DO NOTHING`, p.Author, p.Forum)
 	}
+
 	tx.Commit()
 
 	return &insertPosts, nil
@@ -434,7 +413,6 @@ var queryPostsNoSience = map[string]map[string]string {
 
 // /thread/{slug_or_id}/posts Сообщения данной ветви обсуждения
 func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, error) {
-	// fmt.Println("param", param, "limit", limit, "since", since, "sort", sort, "desc", desc)
 	thread, err := GetThreadDB(param)
 	if err != nil {
 		return nil, ForumNotFound
@@ -475,10 +453,8 @@ func GetThreadPostsDB(param, limit, since, sort, desc string) (*models.Posts, er
 	}
 	err = rows.Err()
 	if err != nil {
-		// fmt.Println(err)
 		return nil, err
 	}
-	// fmt.Println("result:", len(posts))
 	return &posts, nil
 }
 
@@ -534,6 +510,7 @@ func MakeThreadVoteDB(vote *models.Vote, param string) (*models.Thread, error) {
 			return nil, UserNotFound
 		}
 	}
+	// если возник вопрос - в какой мемент делаем +1 к voice -> смотри init.sql
 
 	err = tx.QueryRow(`SELECT votes FROM threads WHERE id = $1`, thread.ID).Scan(&thread.Votes)
 	if err != nil {

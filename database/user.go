@@ -48,8 +48,7 @@ func CreateUserDB(u *models.User) (*models.Users, error)  {
 		return nil, err
 	}
 
-	// if it returns 0 - user existed, else user was created
-	if rows.RowsAffected() == 0 {
+	if rows.RowsAffected() == 0 { // пользователь уже есть
 		users := models.Users{}
 		queryRows, err := DB.pool.Query(getUserByNicknameOrEmailSQL, &u.Email, &u.Nickname)
 		defer queryRows.Close()

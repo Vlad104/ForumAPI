@@ -23,9 +23,10 @@ const (
 func GetPostDB(id int) (*models.Post, error) {
 	post := models.Post{}
 
-	rows := DB.pool.QueryRow(getPostSQL, id)
-
-	err := rows.Scan(
+	err := DB.pool.QueryRow(
+		getPostSQL,
+		id,
+	).Scan(
 		&post.ID,
 		&post.Author,
 		&post.Message,
@@ -36,14 +37,13 @@ func GetPostDB(id int) (*models.Post, error) {
 		&post.Parent,
 	)
 
-	if err != nil {
-		if err.Error() == "no rows in result set" {
-			return nil, PostNotFound
-		}
+	if err == nil {
+		return &post, nil
+	} else if (err.Error() == noRowsInResult) {
+		return nil, PostNotFound
+	} else {
 		return nil, err
 	}
-
-	return &post, nil
 }
 
 
@@ -97,12 +97,11 @@ func UpdatePostDB(postUpdate *models.PostUpdate, id int) (*models.Post, error) {
 		&post.Parent,
 	)
 
-	if err != nil {
-		if err.Error() == "no rows in result set" {
-			return nil, PostNotFound
-		}
+	if err == nil {
+		return post, nil
+	} else if (err.Error() == noRowsInResult) {
+		return nil, PostNotFound
+	} else {
 		return nil, err
 	}
-
-	return post, nil
 }

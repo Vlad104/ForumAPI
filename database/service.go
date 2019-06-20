@@ -5,13 +5,6 @@ import (
 )
 
 const (
-	// getStatusSQL = `
-	// 	SELECT 
-	// 	(SELECT COUNT(*) FROM users) AS users,
-	// 	(SELECT COUNT(*) FROM forums) AS forums,
-	// 	(SELECT COALESCE(SUM(posts), 0) FROM forums WHERE posts > 0) AS posts,
-	// 	(SELECT COALESCE(SUM(threads), 0) FROM forums WHERE threads > 0) AS threads
-	// `
 	getStatusSQL = `
 		SELECT 
 		(SELECT COUNT(*) FROM users) AS users,
@@ -20,7 +13,7 @@ const (
 		(SELECT COALESCE(SUM(threads), 0) FROM forums WHERE threads > 0) AS threads
 	`
 	clearSQL = `
-		TRUNCATE users, forums, threads, posts, votes;
+		TRUNCATE users, forums, threads, posts, votes, forum_users;
 	`
 )
 

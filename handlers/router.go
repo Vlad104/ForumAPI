@@ -14,12 +14,15 @@ import (
 // 		next.ServeHTTP(w, r)
 // 		t2 := time.Now().Second()
 // 		dt := t2 - t1
-// 		if dt >= 2 {
-// 			log.Println(r.Method, r.URL.Path, 
+// 		if dt >= 1 {
+// 			log.Println(
+// 			dt,
+// 			r.Method, 
+// 			r.URL.Path, 
 // 			"limit", r.URL.Query().Get("limit"), 
 // 			"since", r.URL.Query().Get("since"),
 // 			"desc", r.URL.Query().Get("desc"),
-// 			dt,
+// 			"sort", r.URL.Query().Get("sort"),
 // 		)
 // 		}
 // 	})

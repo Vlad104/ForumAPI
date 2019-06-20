@@ -74,7 +74,6 @@ func CreateForumThread(w http.ResponseWriter, r *http.Request) {
 	err = thread.UnmarshalJSON(body)
 	thread.Forum = slug // иначе не знаю как
 
-	//err = forum.Validate()
 	if err != nil {
 		makeResponse(w, 500, []byte(err.Error()))
 		return
@@ -106,9 +105,10 @@ func GetForumThreads(w http.ResponseWriter, r *http.Request) {
 	if limit = queryParams.Get("limit"); limit == "" {
 		limit = "1";
 	}
-	if since = queryParams.Get("since"); since == "" {
-		since = "";
-	}
+	since = queryParams.Get("since");
+	// if since = queryParams.Get("since"); since == "" {
+	// 	since = "";
+	// }
 	if desc = queryParams.Get("desc"); desc == ""{
 		desc = "false";
 	}
@@ -134,9 +134,10 @@ func GetForumUsers(w http.ResponseWriter, r *http.Request) {
 	if limit = queryParams.Get("limit"); limit == "" {
 		limit = "1";
 	}
-	if since = queryParams.Get("since"); since == "" {
-		since = "";
-	}
+	since = queryParams.Get("since");
+	// if since = queryParams.Get("since"); since == "" {
+	// 	since = "";
+	// }
 	if desc = queryParams.Get("desc"); desc == ""{
 		desc = "false";
 	}
@@ -145,7 +146,7 @@ func GetForumUsers(w http.ResponseWriter, r *http.Request) {
 	
 	switch err {
 	case nil:
-		resp, _ := swag.WriteJSON(result)
+		resp, _ := swag.WriteJSON(result) // можно через easyjson, но мне лень было
 		makeResponse(w, 200, resp)
 	case database.ForumNotFound:
 		makeResponse(w, 404, []byte(makeErrorUser(slug)))
