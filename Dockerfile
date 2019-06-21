@@ -9,7 +9,7 @@ RUN apt-get update && \
 
 # Клонируем проект
 USER root
-RUN git clone https://github.com/Vlad104/TP_DB_RK2.git # disable cache for one step four
+RUN git clone https://github.com/Vlad104/TP_DB_RK2.git # рекомендую каждый раз менять этот коммент, дабы избежать кеширования
 WORKDIR TP_DB_RK2
 
 # Устанавливаем PostgreSQL

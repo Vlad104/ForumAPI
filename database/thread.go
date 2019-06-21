@@ -7,7 +7,6 @@ import (
 	"strings"
 	"github.com/Vlad104/TP_DB_RK2/models"
 	"github.com/jackc/pgx"
-	// "github.com/jackc/pgx/pgtype"
 )
 
 const (

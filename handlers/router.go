@@ -2,31 +2,31 @@ package handlers
 
 import (
 	"github.com/gorilla/mux"
-	// "net/http"
-	// "log"
-	// "time"
+	"net/http"
+	"log"
+	"time"
 )
 
-// func LogMiddleware(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		// fmt.Println(r.Method, r.URL.Path)
-// 		t1 := time.Now().Second()
-// 		next.ServeHTTP(w, r)
-// 		t2 := time.Now().Second()
-// 		dt := t2 - t1
-// 		if dt >= 1 {
-// 			log.Println(
-// 			dt,
-// 			r.Method, 
-// 			r.URL.Path, 
-// 			"limit", r.URL.Query().Get("limit"), 
-// 			"since", r.URL.Query().Get("since"),
-// 			"desc", r.URL.Query().Get("desc"),
-// 			"sort", r.URL.Query().Get("sort"),
-// 		)
-// 		}
-// 	})
-// }
+func LogMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t1 := time.Now().Second()
+		next.ServeHTTP(w, r)
+		t2 := time.Now().Second()
+		dt := t2 - t1
+		// выводим медленные запросы
+		if dt >= 1 {
+			log.Println(
+			dt,
+			r.Method, 
+			r.URL.Path, 
+			"limit", r.URL.Query().Get("limit"), 
+			"since", r.URL.Query().Get("since"),
+			"desc", r.URL.Query().Get("desc"),
+			"sort", r.URL.Query().Get("sort"),
+		)
+		}
+	})
+}
 
 func CreateRouter() *mux.Router {
 	r := mux.NewRouter()

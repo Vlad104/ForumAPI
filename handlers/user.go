@@ -24,7 +24,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	err = user.UnmarshalJSON(body)
 	user.Nickname = nickname
 
-	//err = forum.Validate()
 	if err != nil {
 		makeResponse(w, 500, []byte(err.Error()))
 		return
@@ -76,7 +75,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	err = user.UnmarshalJSON(body)
 	user.Nickname = nickname
 
-	//err = forum.Validate()
 	if err != nil {
 		makeResponse(w, 500, []byte(err.Error()))
 		return
