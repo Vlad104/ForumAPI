@@ -54,7 +54,8 @@ RUN apt-get -y install gcc musl-dev && GO11MODULE=on
 ENV GOBIN $GOPATH/bin
 RUN go get
 RUN go build main.go
-EXPOSE 5000
+# EXPOSE 5000
+EXPOSE 80
 
 # Запускаем PostgreSQL и api сервер
 CMD service postgresql start && ./main
